@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +45,9 @@ import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
+import androidx.navigation.NavController
 import com.example.recipeorganizer.ui.theme.Oswald
+import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @Composable
 fun AddWidth(space: Dp) {
@@ -59,9 +60,10 @@ fun AddHeight(space: Dp) {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun Landing() {
+fun Landing(
+    navController: NavController
+) {
     Surface {
         var isSheetopen by rememberSaveable { mutableStateOf(false) }
         var selection by remember { mutableStateOf("Login") }
@@ -132,8 +134,6 @@ fun Landing() {
                     )
                 }
 
-
-
                 Column(
                     modifier = Modifier.constrainAs(loginbutton) {
                         top.linkTo(welcometext.bottom, margin = 50.dp)
@@ -187,7 +187,9 @@ fun Landing() {
                     }
 
                     Button(
-                        onClick = {},
+                        onClick = {
+                            navController.navigate(route = Screens.Home.route)
+                        },
                         modifier = Modifier
                             .fillMaxWidth(fraction = 0.85f)
                             .height(50.dp),
@@ -211,10 +213,10 @@ fun Landing() {
                     containerColor = main
                 ) {
                     if (selection == "Login") {
-                        Login()
+                        Login(navController)
                     }
                     else if(selection == "Signup") {
-                        Signup()
+                        Signup(navController)
                     }
                 }
             }

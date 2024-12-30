@@ -31,10 +31,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
+import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,7 +80,7 @@ fun Input(
 }
 
 @Composable
-fun Login() {
+fun Login(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
@@ -124,7 +126,9 @@ fun Login() {
         AddHeight(30.dp)
 
         Button(
-            onClick = {},
+            onClick = {
+                navController.navigate(route = Screens.Home.route)
+            },
             modifier = Modifier
                 .fillMaxWidth(fraction = 0.85f)
                 .height(50.dp),

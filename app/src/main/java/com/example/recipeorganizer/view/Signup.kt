@@ -23,12 +23,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
+import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @Composable
-fun Signup() {
+fun Signup(
+    navController: NavController
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
@@ -84,7 +88,9 @@ fun Signup() {
         AddHeight(30.dp)
 
         Button(
-            onClick = {},
+            onClick = {
+                navController.navigate(route = Screens.Home.route)
+            },
             modifier = Modifier
                 .fillMaxWidth(fraction = 0.85f)
                 .height(50.dp),

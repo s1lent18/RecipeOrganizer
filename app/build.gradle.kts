@@ -78,4 +78,10 @@ dependencies {
     implementation (libs.coil.compose)
 
     implementation(libs.androidx.material.icons.extended)
+
+    implementation(libs.retrofit) // Retrofit core
+    implementation(libs.converter.gson) // Gson converter
+    implementation(libs.gson)
+
+    implementation(libs.androidx.navigation.compose)
 }
