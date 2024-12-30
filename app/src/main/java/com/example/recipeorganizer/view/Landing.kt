@@ -35,15 +35,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
-import com.example.recipeorganizer.ui.theme.text
-import kotlinx.coroutines.selects.select
+import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 
 @Composable
 fun AddWidth(space: Dp) {
@@ -74,7 +76,7 @@ fun Landing() {
                     .fillMaxSize()
                     .padding(top = 50.dp)
             ) {
-                val (iconbox, loginbutton) = createRefs()
+                val (iconbox, loginbutton, welcometext) = createRefs()
 
                 Box(
                     modifier = Modifier
@@ -103,9 +105,37 @@ fun Landing() {
                     )
                 }
 
+                Row (
+                    modifier = Modifier.constrainAs(welcometext) {
+                        top.linkTo(iconbox.bottom, margin = 30.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.percent(0.8f)
+                    },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Your personal guide to discovering healthy and delicious recipes, tailored just for you!",
+                        color = main,
+                        fontSize = 20.sp,
+                        fontFamily = oswald,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 35.sp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
+                        minLines = 2,
+                        maxLines = 3,
+                        overflow = Ellipsis,
+
+                    )
+                }
+
+
+
                 Column(
                     modifier = Modifier.constrainAs(loginbutton) {
-                        top.linkTo(iconbox.bottom, margin = 50.dp)
+                        top.linkTo(welcometext.bottom, margin = 50.dp)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom, margin = 20.dp)
