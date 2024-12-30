@@ -46,6 +46,7 @@ import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
+import com.example.recipeorganizer.ui.theme.Oswald
 
 @Composable
 fun AddWidth(space: Dp) {
@@ -118,7 +119,7 @@ fun Landing() {
                         "Your personal guide to discovering healthy and delicious recipes, tailored just for you!",
                         color = main,
                         fontSize = 20.sp,
-                        fontFamily = oswald,
+                        fontFamily = Oswald,
                         textAlign = TextAlign.Center,
                         lineHeight = 35.sp,
                         modifier = Modifier
