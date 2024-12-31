@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface RecipeDisplayApi {
 
-    @GET("/complexSearch")
+    @GET("recipes/complexSearch")
     suspend fun getRecipes(
         @Query("apiKey") apiKey: String,
         @Query("type") type: String,
