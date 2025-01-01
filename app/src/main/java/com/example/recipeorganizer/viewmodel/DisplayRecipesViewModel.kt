@@ -5,9 +5,15 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.recipeorganizer.R
+import com.example.recipeorganizer.models.api.GetRecipeFullInfoApi
+import com.example.recipeorganizer.models.api.GetRecipeIngredientsApi
+import com.example.recipeorganizer.models.api.GetRecipeNutrientsApi
 import com.example.recipeorganizer.models.api.RecipeDisplayApi
 import com.example.recipeorganizer.models.api.SearchApi
 import com.example.recipeorganizer.models.model.AutoCompleteModelItem
+import com.example.recipeorganizer.models.model.Ingredient
+import com.example.recipeorganizer.models.model.NutrientsModel
+import com.example.recipeorganizer.models.model.RecipeFullInfoModel
 import com.example.recipeorganizer.models.model.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -18,8 +24,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DisplayRecipesViewModel @Inject constructor(
-    private val getdisplayrecipesapi : RecipeDisplayApi,
     private val getsearchrecipesapi: SearchApi,
+    private val getdisplayrecipesapi : RecipeDisplayApi,
+    private val getingredientsapi: GetRecipeIngredientsApi,
+    private val getrecipefullinfoapi: GetRecipeFullInfoApi,
+    private val getrecipenutrientsapi: GetRecipeNutrientsApi,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -28,6 +37,15 @@ class DisplayRecipesViewModel @Inject constructor(
 
     private val _searchrecipes = MutableStateFlow<List<AutoCompleteModelItem>>(emptyList())
     val searchrecipes : StateFlow<List<AutoCompleteModelItem>> = _searchrecipes
+
+    private val _ingredientsrecipes = MutableStateFlow<List<Ingredient>>(emptyList())
+    val ingredientsrecipes : StateFlow<List<Ingredient>> = _ingredientsrecipes
+
+    private val _recipefullinfo = MutableStateFlow<RecipeFullInfoModel?>(null)
+    val recipefullinfo : StateFlow<RecipeFullInfoModel?> = _recipefullinfo
+
+    private val _nutrientsinfo = MutableStateFlow<NutrientsModel?>(null)
+    val nutrientsinfo : StateFlow<NutrientsModel?> = _nutrientsinfo
 
     private val _total = MutableStateFlow(0)
     val total: StateFlow<Int> = _total
@@ -88,6 +106,84 @@ class DisplayRecipesViewModel @Inject constructor(
                 if(response.isSuccessful) {
                     response.body()?.let { responses ->
                         _searchrecipes.value = responses
+                    }
+                    Log.d("API Response", "Failed: ${response.body()}")
+                }
+                else {
+                    Log.e("API Response", "Failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("API Error", "Exception: ${e.message}")
+            }
+        }
+    }
+
+    fun getIngredients(
+        apiKey: String = context.getString(R.string.FoodApiKey),
+        id: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = getingredientsapi.getIngredients(
+                    apiKey = apiKey,
+                    id = id
+                )
+
+                if(response.isSuccessful) {
+                    response.body()?.let { responses ->
+                        _ingredientsrecipes.value = responses.ingredients
+                    }
+                    Log.d("API Response", "Failed: ${response.body()}")
+                }
+                else {
+                    Log.e("API Response", "Failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("API Error", "Exception: ${e.message}")
+            }
+        }
+    }
+
+    fun getRecipeFullInfo(
+        apiKey: String = context.getString(R.string.FoodApiKey),
+        id: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = getrecipefullinfoapi.getFullInfo(
+                    apiKey = apiKey,
+                    id = id
+                )
+
+                if(response.isSuccessful) {
+                    response.body()?.let { responses ->
+                        _recipefullinfo.value = responses
+                    }
+                    Log.d("API Response", "Failed: ${response.body()}")
+                }
+                else {
+                    Log.e("API Response", "Failed: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("API Error", "Exception: ${e.message}")
+            }
+        }
+    }
+
+    fun getNutrients(
+        apiKey: String = context.getString(R.string.FoodApiKey),
+        id: Int
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = getrecipenutrientsapi.getNutrients(
+                    apiKey = apiKey,
+                    id = id
+                )
+
+                if(response.isSuccessful) {
+                    response.body()?.let { responses ->
+                        _nutrientsinfo.value = responses
                     }
                     Log.d("API Response", "Failed: ${response.body()}")
                 }

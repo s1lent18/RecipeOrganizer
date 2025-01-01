@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.models.dataprovider.OptionRows
@@ -58,6 +59,7 @@ import com.example.recipeorganizer.ui.theme.Chewy
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
+import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @Composable
 fun TextRow(
@@ -85,13 +87,24 @@ fun TextRow(
 }
 
 @Composable
-fun Recipe(text: String, image: String) {
+fun Recipe(
+    text: String,
+    image: String,
+    specificRecipe: (id: Int) -> Unit,
+    id: Int,
+    navController: NavController
+) {
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .height(200.dp)
             .width(150.dp)
-            .background(main),
+            .background(main)
+            .clickable {
+                specificRecipe(id)
+                navController.navigate(route = Screens.Single.route)
+            }
+        ,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -120,10 +133,12 @@ fun Recipe(text: String, image: String) {
 
 @Composable
 fun Home(
+    navController: NavController,
     displayrecipesviewmodel : DisplayRecipesViewModel = hiltViewModel(),
     onLoadMore: (offset: Int) -> Unit,
     loadAnother: (type: String, clear: Boolean) -> Unit,
-    searchRecipes: (query: String) -> Unit
+    searchRecipes: (query: String) -> Unit,
+    specificRecipe: (id: Int) -> Unit
 ) {
     Surface {
         val image = "https://imgs.search.brave.com/YPCn_gZZ-7-pVx_lhOks6Cgvr4UrXXzOkSPKYuXD9pY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA5LzA5LzQ2Lzg3/LzM2MF9GXzkwOTQ2/ODcxMF8wOHVTc0Yw/clVtNlhDMmlUaWls/aFU3MUg5R3k3NU04/Qy5qcGc"
@@ -256,7 +271,8 @@ fun Home(
                                 FloatingActionButton(
                                     modifier = Modifier.fillMaxWidth(),
                                     onClick = {
-
+                                        specificRecipe(searchrecipes[recipe].id)
+                                        navController.navigate(route = Screens.Single.route)
                                     },
                                     containerColor = main
                                 ) {
@@ -328,7 +344,10 @@ fun Home(
                             AddHeight(80.dp)
                             Recipe(
                                 text = recipes[recipe].title,
-                                image = recipes[recipe].image
+                                image = recipes[recipe].image,
+                                specificRecipe = specificRecipe,
+                                id = recipes[recipe].id,
+                                navController = navController
                             )
                         }
                     }
