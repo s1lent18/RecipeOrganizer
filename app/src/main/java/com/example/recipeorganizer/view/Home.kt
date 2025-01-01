@@ -1,5 +1,6 @@
 package com.example.recipeorganizer.view
 
+import android.util.Log
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,31 +17,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -49,11 +54,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.models.dataprovider.OptionRows
-import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.Chewy
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.ui.theme.main
-import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 
 @Composable
@@ -115,10 +118,12 @@ fun Recipe(text: String, image: String) {
 }
 
 
-@Preview
 @Composable
 fun Home(
     displayrecipesviewmodel : DisplayRecipesViewModel = hiltViewModel(),
+    onLoadMore: (offset: Int) -> Unit,
+    loadAnother: (type: String, clear: Boolean) -> Unit,
+    searchRecipes: (query: String) -> Unit
 ) {
     Surface {
         val image = "https://imgs.search.brave.com/YPCn_gZZ-7-pVx_lhOks6Cgvr4UrXXzOkSPKYuXD9pY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA5LzA5LzQ2Lzg3/LzM2MF9GXzkwOTQ2/ODcxMF8wOHVTc0Yw/clVtNlhDMmlUaWls/aFU3MUg5R3k3NU04/Qy5qcGc"
@@ -126,7 +131,21 @@ fun Home(
         val imageState = painter.state
         var searchQuery by remember { mutableStateOf("") }
         val selectedOption = remember { mutableStateOf("BreakFast") }
+        val loadingoption = remember { mutableStateOf("") }
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
+        val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
+        val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
+        val gridState = rememberLazyStaggeredGridState()
+
+        LaunchedEffect(gridState) {
+            snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                .collect { lastVisibleItemIndex ->
+                    Log.d("LazyGrid", "Last visible index: $lastVisibleItemIndex, Recipes size: ${recipes.size}")
+                    if (lastVisibleItemIndex == recipes.size - 1) {
+                        onLoadMore(recipes.size)
+                    }
+                }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -206,7 +225,10 @@ fun Home(
                 ) {
                     TextField(
                         value = searchQuery,
-                        onValueChange = { searchQuery = it },
+                        onValueChange = {
+                            searchQuery = it
+                            searchRecipes(searchQuery)
+                        },
                         placeholder = { Text(text = "Search...") },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = {
@@ -222,6 +244,38 @@ fun Home(
                             disabledIndicatorColor = Color.Transparent,
                         )
                     )
+
+                    if (searchrecipes.isNotEmpty()) {
+                        LazyColumn (
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp)
+                        ) {
+                            items(searchrecipes.size) { recipe ->
+                                AddHeight(10.dp)
+                                FloatingActionButton(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = {
+
+                                    },
+                                    containerColor = main
+                                ) {
+                                    Row (
+                                        modifier = Modifier.fillMaxWidth(fraction = 0.9f),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = searchrecipes[recipe].title,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 LazyRow(
@@ -234,47 +288,65 @@ fun Home(
                 ) {
                     items(OptionRows.size) { option ->
                         TextRow(
-                            text = OptionRows[option],
-                            isSelected = selectedOption.value == OptionRows[option],
+                            text = OptionRows[option].first,
+                            isSelected = selectedOption.value == OptionRows[option].first,
                             onClick = {
-                                selectedOption.value = OptionRows[option]
+                                selectedOption.value = OptionRows[option].first
+                                loadingoption.value = OptionRows[option].second
+                                loadAnother(loadingoption.value, true)
                             }
                         )
                         AddWidth(12.dp)
                     }
                 }
 
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(2),
-                    verticalItemSpacing = 16.dp,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.constrainAs(recipedisplay) {
-                        top.linkTo(optionrow.bottom, margin = 30.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        width = Dimension.percent(0.9f)
-                        bottom.linkTo(parent.bottom, margin = 60.dp)
-                        height = Dimension.fillToConstraints
-                    }
-                ) {
-                    item {
-                        Text(
-                            text = "${ recipes.size } New Recipes",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(10.dp)
-                        )
-                    }
+                if (recipes.isNotEmpty()) {
+                    LazyVerticalStaggeredGrid(
+                        state = gridState,
+                        columns = StaggeredGridCells.Fixed(2),
+                        verticalItemSpacing = 16.dp,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.constrainAs(recipedisplay) {
+                            top.linkTo(optionrow.bottom, margin = 30.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            width = Dimension.percent(0.9f)
+                            bottom.linkTo(parent.bottom, margin = 60.dp)
+                            height = Dimension.fillToConstraints
+                        }
+                    ) {
+                        item {
+                            Text(
+                                text = "$total New Recipes",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
 
-                    items(recipes.size) { recipe ->
-                        AddHeight(80.dp)
-                        Recipe(
-                            text = recipes[recipe].title,
-                            image = recipes[recipe].image
-                        )
+                        items(recipes.size) { recipe ->
+                            AddHeight(80.dp)
+                            Recipe(
+                                text = recipes[recipe].title,
+                                image = recipes[recipe].image
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.constrainAs(recipedisplay) {
+                            top.linkTo(optionrow.bottom, margin = 30.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom, margin = 60.dp)
+                            width = Dimension.percent(0.9f)
+                            height = Dimension.fillToConstraints
+                        },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
-
             }
         }
     }
