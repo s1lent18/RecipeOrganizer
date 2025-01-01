@@ -70,7 +70,6 @@ fun TextRow(
     if (isSelected) {
         Text(
             text = text,
-            color = main,
             modifier = Modifier.clickable { onClick() },
             fontFamily = Oswald,
             fontSize = 20.sp
