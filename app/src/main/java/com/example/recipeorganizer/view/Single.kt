@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -224,7 +224,6 @@ fun IngredientsRow(
     ) {
         Box (
             modifier = Modifier
-                .border(width = 2.dp, color = Color.White, shape = CircleShape)
                 .clip(CircleShape)
                 .size(60.dp),
             contentAlignment = Alignment.Center
@@ -237,7 +236,7 @@ fun IngredientsRow(
             )
         }
 
-        AddHeight(5.dp)
+        AddHeight(10.dp)
 
         Text(
             text = name,
@@ -318,7 +317,7 @@ fun Single(
                     }
                     Row(
                         modifier = Modifier.constrainAs(navigationrow) {
-                            top.linkTo(parent.top, margin = 20.dp)
+                            top.linkTo(parent.top, margin = 30.dp)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
                             width = Dimension.percent(0.95f)
@@ -419,7 +418,7 @@ fun Single(
                             }
                             .heightIn(max = 600.dp),
                         verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.Start
                     ) {
                         item {
                             PieChart(
@@ -432,28 +431,28 @@ fun Single(
                             )
                         }
 
-//                        item {
-//                            Text(
-//                                text = "Ingredients",
-//                                fontSize = 20.sp,
-//                                fontFamily = Chewy
-//                            )
-//                            AddHeight(5.dp)
-//                            LazyRow(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(100.dp)
-//                            ) {
-//                                items(ingredients.size) { ing ->
-//                                    IngredientsRow(
-//                                        context = context,
-//                                        image = ingredients[ing].image,
-//                                        name = ingredients[ing].name
-//                                    )
-//                                    AddWidth(20.dp)
-//                                }
-//                            }
-//                        }
+                        item {
+                            Text(
+                                text = "Ingredients",
+                                fontSize = 20.sp,
+                                fontFamily = Chewy
+                            )
+                            AddHeight(5.dp)
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                            ) {
+                                items(ingredients.size) { ing ->
+                                    IngredientsRow(
+                                        context = context,
+                                        image = ingredients[ing].image,
+                                        name = ingredients[ing].name
+                                    )
+                                    AddWidth(20.dp)
+                                }
+                            }
+                        }
                     }
                 }
             }
