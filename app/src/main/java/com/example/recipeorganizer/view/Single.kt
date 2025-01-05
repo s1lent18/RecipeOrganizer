@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -155,7 +156,6 @@ fun DetailsPieChart(
     LazyColumn(
         modifier = Modifier
             .heightIn(max = 300.dp)
-            .padding(start = 50.dp)
             .fillMaxWidth()
     ) {
         items(data.entries.toList()) { entry ->
@@ -249,7 +249,7 @@ fun IngredientsRow(
 @Composable
 fun Single(
     navController: NavController,
-    displayrecipesviewmodel: DisplayRecipesViewModel
+    displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
 ) {
     Surface {
 
@@ -452,6 +452,7 @@ fun Single(
                                     AddWidth(20.dp)
                                 }
                             }
+                            AddHeight(40.dp)
                         }
                     }
                 }

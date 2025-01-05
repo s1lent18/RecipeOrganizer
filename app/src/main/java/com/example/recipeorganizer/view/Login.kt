@@ -1,6 +1,7 @@
 package com.example.recipeorganizer.view
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,13 +19,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,11 +37,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.recipeorganizer.R
+import com.example.recipeorganizer.models.requests.LoginRequest
+import com.example.recipeorganizer.models.response.NetworkResponse
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
+import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,16 +90,35 @@ fun Input(
 }
 
 @Composable
-fun Login(navController: NavController) {
+fun Login(
+    navController: NavController,
+    authviewmodel: AuthViewModel = hiltViewModel()
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val context = LocalContext.current
+        var clicked by remember { mutableStateOf(false) }
+        var isLoading by remember { mutableStateOf(false) }
+        val loginresult = authviewmodel.loginresult.observeAsState()
+        var requestreceived by remember { mutableStateOf(false) }
+        val keyboardController = LocalSoftwareKeyboardController.current
+        var passwordvisibility by remember { mutableStateOf(false) }
         val (username, setusername) = remember { mutableStateOf("") }
         val (password, setpassword) = remember { mutableStateOf("") }
-        var passwordvisibility by remember { mutableStateOf(false) }
         val icon = if (passwordvisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
+
+        LaunchedEffect (clicked) {
+            if(clicked) {
+                val loginrequest = LoginRequest(username, password)
+                authviewmodel.login(loginrequest)
+                requestreceived = true
+                clicked = false
+
+            }
+        }
 
         AddHeight(20.dp)
 
@@ -125,22 +154,52 @@ fun Login(navController: NavController) {
 
         AddHeight(30.dp)
 
-        Button(
-            onClick = {
-                navController.navigate(route = Screens.Home.route)
-            },
-            modifier = Modifier
-                .fillMaxWidth(fraction = 0.85f)
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = sec,
-                contentColor = text
-            ),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text("Login")
+        if (!isLoading) {
+            Button(
+                onClick = {
+                    if (username.isNotEmpty() && password.isNotEmpty()) {
+                        clicked = true
+                        keyboardController?.hide()
+                    }
+                    else if (username.isEmpty()) {
+                        Toast.makeText(context, "Enter username", Toast.LENGTH_SHORT).show()
+                    }
+                    else if (password.isEmpty()) {
+                        Toast.makeText(context, "Enter password", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth(fraction = 0.85f)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = sec,
+                    contentColor = text
+                ),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Login")
+            }
+        } else {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp))
         }
 
         AddHeight(30.dp)
+
+        if (username.isNotEmpty() && password.isNotEmpty() && requestreceived) {
+            when (loginresult.value) {
+                is NetworkResponse.Failure -> {
+                    isLoading = false
+                    Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_LONG).show()
+                    requestreceived = false
+                }
+                NetworkResponse.Loading -> isLoading = true
+                is NetworkResponse.Success -> {
+                    isLoading = false
+                    Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+                    navController.navigate(route = Screens.Home.route)
+                }
+                null -> {}
+            }
+        }
     }
 }
