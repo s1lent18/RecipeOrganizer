@@ -4,64 +4,90 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.recipeorganizer.models.api.LoginApi
-import com.example.recipeorganizer.models.api.SignupApi
-import com.example.recipeorganizer.models.model.LoginModel
-import com.example.recipeorganizer.models.requests.LoginRequest
-import com.example.recipeorganizer.models.requests.SignupRequest
-import com.example.recipeorganizer.models.response.NetworkResponse
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val loginapi: LoginApi,
-    private val signupapi: SignupApi
+    private val firebaseAuth: FirebaseAuth,
+    private val database: DatabaseReference,
+    private val repository: Repository
 ) : ViewModel()  {
 
-    private val _loginresult = MutableLiveData<NetworkResponse<LoginModel>>()
-    val loginresult: LiveData<NetworkResponse<LoginModel>> = _loginresult
+    private val _loggedin = MutableLiveData<Boolean>()
+    val loggedin: LiveData<Boolean> = _loggedin
+    private val _signedup = MutableLiveData<Boolean>()
+    val signedup: LiveData<Boolean> = _signedup
+    private val _username = MutableStateFlow<String?>(null)
+    val username: StateFlow<String?> = _username
+    private val _email = MutableStateFlow<String?>(null)
+    val email: StateFlow<String?> = _email
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading
+    private val _errorMessage = MutableLiveData<String?>(null)
+    val errorMessage: LiveData<String?> get() = _errorMessage
 
-    private val _signupresult = MutableLiveData<NetworkResponse<LoginModel>>()
-    val signupresult: LiveData<NetworkResponse<LoginModel>> = _signupresult
+    init {
+        _loggedin.value = firebaseAuth.currentUser != null
+    }
 
-    fun login(loginrequest: LoginRequest) {
-        _loginresult.value = NetworkResponse.Loading
-        viewModelScope.launch {
-            try {
-                val response = loginapi.loginUser(loginrequest)
-                Log.d("LoginViewModel", "HTTP response code: ${response.code()}")
-                if (response.isSuccessful && response.code() == 200) {
-                    response.body()?.let {
-                        _loginresult.value = NetworkResponse.Success(it)
+    fun signin(email: String, password: String) {
+        firebaseAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    _loggedin.value = true
+                    val userId = firebaseAuth.currentUser?.uid
+                    if (userId != null) {
+                        fetchUsername(userId)
                     }
                 } else {
-                    _loginresult.value = NetworkResponse.Failure("Wrong Username/Password")
+                    _errorMessage.value = "Wrong Email/Password"
                 }
-            } catch (e: Exception) {
-                _loginresult.value = NetworkResponse.Failure("Server IrResponsive")
+            }
+    }
+
+    fun signup(email: String, password: String, username: String) {
+        repository.checkUsernameAvailability(username) { isAvailable ->
+            if (isAvailable) {
+                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            repository.adduser(email, username)
+                            _signedup.value = true
+                            Log.d("Firebase", "Check")
+                        } else {
+                            _errorMessage.value = "Email Already in use"
+                            Log.d("Firebase", "Failed")
+                        }
+                    }
+            } else {
+                _errorMessage.value = "Username Already in Use"
+                Log.d("Firebase", "1Failed")
             }
         }
     }
 
-    fun signup(signuprequest: SignupRequest) {
-        _signupresult.value = NetworkResponse.Loading
-        viewModelScope.launch {
-            try {
-                val response = signupapi.registerUser(signuprequest)
-                Log.d("LoginViewModel", "HTTP response code: ${response.code()}")
-                if (response.isSuccessful && response.code() == 200) {
-                    response.body()?.let {
-                        _signupresult.value = NetworkResponse.Success(it)
-                    }
-                } else {
-                    _signupresult.value = NetworkResponse.Failure("Wrong Username/Password")
+    fun signout() {
+        firebaseAuth.signOut()
+        _loggedin.value = false
+    }
+
+    fun fetchUsername(userId: String) {
+        database.child("FoodAppDB").child(userId).child("username")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    Log.d("Firebase Response:", "${snapshot.value}")
+                    _username.value = snapshot.value.toString()
                 }
-            } catch (e: Exception) {
-                _signupresult.value = NetworkResponse.Failure("Server IrResponsive")
             }
-        }
+    }
+
+    fun getuserid() : String? {
+        return FirebaseAuth.getInstance().currentUser?.uid
     }
 }

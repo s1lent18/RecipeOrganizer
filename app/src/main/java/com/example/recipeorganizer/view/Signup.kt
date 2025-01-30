@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,15 +28,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.recipeorganizer.R
-import com.example.recipeorganizer.models.requests.SignupRequest
-import com.example.recipeorganizer.models.response.NetworkResponse
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
 import com.example.recipeorganizer.viewmodel.AuthViewModel
-import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 fun validateEmail(email: String): Boolean {
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$".toRegex()
@@ -46,8 +40,7 @@ fun validateEmail(email: String): Boolean {
 
 @Composable
 fun Signup(
-    navController: NavController,
-    authviewmodel: AuthViewModel = hiltViewModel()
+    authviewmodel: AuthViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -59,7 +52,6 @@ fun Signup(
         val (password, setpassword) = remember { mutableStateOf("") }
         val (email, setemail) = remember { mutableStateOf("") }
         var passwordvisibility by remember { mutableStateOf(false) }
-        val signupresult = authviewmodel.signupresult.observeAsState()
         var requestreceived by remember { mutableStateOf(false) }
         var isLoading by remember { mutableStateOf(false) }
         var clicked by remember { mutableStateOf(false) }
@@ -68,12 +60,11 @@ fun Signup(
 
         LaunchedEffect (clicked) {
             if(clicked) {
-                val signuprequest = SignupRequest(
+                authviewmodel.signup(
                     username = username,
-                    password = password,
                     email = email,
+                    password = password
                 )
-                authviewmodel.signup(signuprequest)
                 clicked = false
                 requestreceived = true
             }
@@ -165,32 +156,6 @@ fun Signup(
         } else {
             CircularProgressIndicator(modifier = Modifier.size(20.dp))
         }
-
         AddHeight(30.dp)
-
-        if(
-            username.isNotEmpty() &&
-            password.isNotEmpty() &&
-            email.isNotEmpty() &&
-            requestreceived
-        ) {
-            when (signupresult.value) {
-                is NetworkResponse.Failure -> {
-                    isLoading = false
-                    Toast.makeText(context, "User Already Exists", Toast.LENGTH_LONG).show()
-                }
-                NetworkResponse.Loading -> {
-                    isLoading = true
-                }
-                is NetworkResponse.Success -> {
-                    isLoading = false
-                    LaunchedEffect(Unit) {
-                        Toast.makeText(context, "Account created successfully!", Toast.LENGTH_LONG).show()
-                        navController.navigate(route = Screens.Home.route)
-                    }
-                }
-                null -> { }
-            }
-        }
     }
 }

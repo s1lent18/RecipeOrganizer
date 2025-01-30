@@ -1,6 +1,7 @@
 package com.example.recipeorganizer.view
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +22,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,16 +37,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.recipeorganizer.R
-import com.example.recipeorganizer.models.requests.LoginRequest
-import com.example.recipeorganizer.models.response.NetworkResponse
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
 import com.example.recipeorganizer.viewmodel.AuthViewModel
-import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +75,10 @@ fun Input(
             disabledIndicatorColor = Color.Transparent,
             focusedLabelColor = main,
             unfocusedLabelColor = main,
-            disabledLabelColor = main
+            disabledLabelColor = main,
+            focusedTextColor = main,
+            unfocusedTextColor = main,
+            disabledTextColor = main
         ),
         shape = RoundedCornerShape(10.dp),
         textStyle = TextStyle(
@@ -91,18 +89,17 @@ fun Input(
 
 @Composable
 fun Login(
-    navController: NavController,
-    authviewmodel: AuthViewModel = hiltViewModel()
+    authviewmodel: AuthViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         val context = LocalContext.current
         var clicked by remember { mutableStateOf(false) }
         var isLoading by remember { mutableStateOf(false) }
-        val loginresult = authviewmodel.loginresult.observeAsState()
         var requestreceived by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
         var passwordvisibility by remember { mutableStateOf(false) }
@@ -112,11 +109,9 @@ fun Login(
 
         LaunchedEffect (clicked) {
             if(clicked) {
-                val loginrequest = LoginRequest(username, password)
-                authviewmodel.login(loginrequest)
+                authviewmodel.signin(email = username, password = password)
                 requestreceived = true
                 clicked = false
-
             }
         }
 
@@ -158,6 +153,7 @@ fun Login(
             Button(
                 onClick = {
                     if (username.isNotEmpty() && password.isNotEmpty()) {
+                        Log.d("LoginButton", "Username: $username, Password: $password")
                         clicked = true
                         keyboardController?.hide()
                     }
@@ -182,24 +178,6 @@ fun Login(
         } else {
             CircularProgressIndicator(modifier = Modifier.size(20.dp))
         }
-
         AddHeight(30.dp)
-
-        if (username.isNotEmpty() && password.isNotEmpty() && requestreceived) {
-            when (loginresult.value) {
-                is NetworkResponse.Failure -> {
-                    isLoading = false
-                    Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_LONG).show()
-                    requestreceived = false
-                }
-                NetworkResponse.Loading -> isLoading = true
-                is NetworkResponse.Success -> {
-                    isLoading = false
-                    Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
-                    navController.navigate(route = Screens.Home.route)
-                }
-                null -> {}
-            }
-        }
     }
 }

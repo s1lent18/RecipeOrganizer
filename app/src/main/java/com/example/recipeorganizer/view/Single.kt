@@ -175,7 +175,8 @@ fun DetailsPieChartItem(
 ) {
     Surface(
         modifier = Modifier
-            .padding(vertical = 10.dp, horizontal = 20.dp),
+            .padding(top = 10.dp, bottom = 10.dp, start = 60.dp)
+            .fillMaxWidth(),
         color = Color.Transparent
     ) {
 

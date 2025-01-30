@@ -35,6 +35,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import com.example.recipeorganizer.models.dataprovider.OptionRows
 import com.example.recipeorganizer.ui.theme.Chewy
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.ui.theme.main
+import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
 
@@ -132,6 +134,7 @@ fun Recipe(
 
 @Composable
 fun Home(
+    authviewmodel: AuthViewModel = hiltViewModel(),
     navController: NavController,
     displayrecipesviewmodel : DisplayRecipesViewModel = hiltViewModel(),
     onLoadMore: (offset: Int) -> Unit,
@@ -150,6 +153,7 @@ fun Home(
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
         val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
         val gridState = rememberLazyStaggeredGridState()
+        val username by authviewmodel.username.collectAsState(initial = null)
 
         LaunchedEffect(gridState) {
             snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -159,6 +163,13 @@ fun Home(
                         onLoadMore(recipes.size)
                     }
                 }
+        }
+
+        LaunchedEffect(Unit) {
+            val userid = authviewmodel.getuserid()
+            if (userid != null) {
+                authviewmodel.fetchUsername(userid)
+            }
         }
 
         Column(
@@ -190,7 +201,7 @@ fun Home(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            "Hello, User",
+                            "Hello, $username",
                             color = main,
                             fontSize = 20.sp,
                             fontFamily = Chewy
@@ -206,7 +217,11 @@ fun Home(
                     Box(
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(45.dp),
+                            .size(45.dp)
+                            .clickable {
+                                authviewmodel.signout()
+                                navController.navigate(route = Screens.Landing.route)
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
