@@ -23,6 +23,7 @@ import com.example.recipeorganizer.ui.theme.RecipeOrganizerTheme
 import com.example.recipeorganizer.ui.theme.sec
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlin.math.max
 
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
@@ -46,17 +47,28 @@ class SplashActivity : ComponentActivity() {
         var isSplashComplete by remember { mutableStateOf(false) }
 
         val  text = "TasteBuds"
-        var displayedText by remember { mutableStateOf("") }
+        val centerIndex = text.length / 2
+        val center = text[centerIndex].toString()
+        val first = text.substring(0, centerIndex)
+        val last = text.substring(centerIndex + 1)
+
+        var displayedText by remember { mutableStateOf(center) }
 
         LaunchedEffect(Unit) {
-            for (i in 1..text.length) {
-                displayedText = text.substring(0, i)
-                delay(100)
-            }
+            for (i in 0 until max(first.length, last.length)) {
+                delay(300)
 
+                val leftChar = if (i < first.length) first[first.length - 1 - i] else null
+                val rightChar = if (i < last.length) last[i] else null
+
+                displayedText = buildString {
+                    if (leftChar != null) append(leftChar)
+                    append(displayedText)
+                    if (rightChar != null) append(rightChar)
+                }
+            }
             delay(500)
             isSplashComplete = true
-
             onSplashFinished()
         }
 
