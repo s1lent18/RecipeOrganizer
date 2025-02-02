@@ -24,6 +24,14 @@ class AuthViewModel @Inject constructor(
     val signedup: LiveData<Boolean> = _signedup
     private val _username = MutableStateFlow<String?>(null)
     val username: StateFlow<String?> = _username
+    private val _age = MutableStateFlow<String?>(null)
+    val age: StateFlow<String?> = _age
+    private val _heightt = MutableStateFlow<String?>(null)
+    val heightt: StateFlow<String?> = _heightt
+    private val _weight = MutableStateFlow<String?>(null)
+    val weight: StateFlow<String?> = _weight
+    private val _cuisine = MutableStateFlow<String?>(null)
+    val cuisine: StateFlow<String?> = _cuisine
     private val _email = MutableStateFlow<String?>(null)
     val email: StateFlow<String?> = _email
     private val _loading = MutableStateFlow(false)
@@ -50,13 +58,13 @@ class AuthViewModel @Inject constructor(
             }
     }
 
-    fun signup(email: String, password: String, username: String) {
+    fun signup(email: String, password: String, username: String, age: String, weight: String, height: String, cuisine: String) {
         repository.checkUsernameAvailability(username) { isAvailable ->
             if (isAvailable) {
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            repository.adduser(email, username)
+                            repository.adduser(email, username, age, weight, height, cuisine)
                             _signedup.value = true
                             Log.d("Firebase", "Check")
                         } else {

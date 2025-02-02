@@ -251,7 +251,6 @@ fun IngredientsRow(
 fun Single(
     navController: NavController,
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
-    sendRequest: (request: String) -> Unit
 ) {
     Surface {
 

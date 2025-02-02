@@ -27,7 +27,6 @@ class GeminiViewModel @Inject constructor(
     val response : StateFlow<GemModel?> = _response
 
     init {
-
         getGeminiPrediction(request = "Healthy Food Tip")
     }
 
@@ -49,7 +48,7 @@ class GeminiViewModel @Inject constructor(
                     }
                     Log.d("GEMINI_API", "Response: ${response.body()}")
                 } else {
-                    Log.e("GEMINI_API", "Error: ${response.errorBody()?.string()}")
+                    Log.e("GEMINI_API", "Error: ${response.code()}")
                 }
             } catch (e: Exception) {
                 Log.e("GEMINI_API", "Exception: ${e.message}")

@@ -25,10 +25,14 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -53,14 +57,16 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.models.dataprovider.OptionRows
+import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.Chewy
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.ui.theme.main
+import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
+import com.example.recipeorganizer.viewmodel.GeminiViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 @Composable
@@ -132,28 +138,67 @@ fun Recipe(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
-    authviewmodel: AuthViewModel = hiltViewModel(),
     navController: NavController,
+    authviewmodel: AuthViewModel = hiltViewModel(),
+    geminiviewmodel: GeminiViewModel = hiltViewModel(),
     displayrecipesviewmodel : DisplayRecipesViewModel = hiltViewModel(),
     onLoadMore: (offset: Int) -> Unit,
-    loadAnother: (type: String, clear: Boolean) -> Unit,
+    specificRecipe: (id: Int) -> Unit,
     searchRecipes: (query: String) -> Unit,
-    specificRecipe: (id: Int) -> Unit
+    sendRequest: (request: String) -> Unit,
+    loadAnother: (type: String, clear: Boolean) -> Unit,
 ) {
     Surface {
-        val image = "https://imgs.search.brave.com/YPCn_gZZ-7-pVx_lhOks6Cgvr4UrXXzOkSPKYuXD9pY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA5LzA5LzQ2Lzg3/LzM2MF9GXzkwOTQ2/ODcxMF8wOHVTc0Yw/clVtNlhDMmlUaWls/aFU3MUg5R3k3NU04/Qy5qcGc"
-        val painter = rememberAsyncImagePainter(model = image)
-        val imageState = painter.state
+        val gridState = rememberLazyStaggeredGridState()
         var searchQuery by remember { mutableStateOf("") }
-        val selectedOption = remember { mutableStateOf("BreakFast") }
+        val response by geminiviewmodel.response.collectAsState()
         val loadingoption = remember { mutableStateOf("") }
+        var launchAlertBox by remember { mutableStateOf(true) }
+        val selectedOption = remember { mutableStateOf("BreakFast") }
+        val username by authviewmodel.username.collectAsState(initial = null)
+        val age by authviewmodel.age.collectAsState(initial = null)
+        val heightt by authviewmodel.heightt.collectAsState(initial = null)
+        val weight by authviewmodel.weight.collectAsState(initial = null)
+        val cuisine by authviewmodel.cuisine.collectAsState(initial = null)
+        val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
-        val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
-        val gridState = rememberLazyStaggeredGridState()
-        val username by authviewmodel.username.collectAsState(initial = null)
+
+        if (launchAlertBox) {
+            BasicAlertDialog(
+                onDismissRequest = { launchAlertBox = false } ,
+                content = {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50.dp))
+                            .fillMaxWidth(fraction = 0.8f)
+                            .background(main),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column (
+                            modifier = Modifier.fillMaxWidth(fraction = 0.8f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AddHeight(20.dp)
+                            Text("Health Tip", fontSize = 20.sp, color = sec, fontFamily = Bebas)
+                            AddHeight(20.dp)
+                            response?.candidates?.get(0)?.content?.parts?.get(0)?.let {
+                                Text(
+                                    text = it.text,
+                                    color = Color.White,
+                                    fontFamily = Oswald
+                                )
+                            }
+                            AddHeight(10.dp)
+                        }
+                    }
+                }
+            )
+        }
 
         LaunchedEffect(gridState) {
             snapshotFlow { gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -182,7 +227,6 @@ fun Home(
                     .fillMaxSize()
                     .padding(top = 70.dp)
             ) {
-
                 val (inforow, searchbox, optionrow, recipedisplay) = createRefs()
 
                 Row(
@@ -200,12 +244,21 @@ fun Home(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start
                     ) {
-                        Text(
-                            "Hello, $username",
-                            color = main,
-                            fontSize = 20.sp,
-                            fontFamily = Chewy
-                        )
+                        if (username != null) {
+                            Text(
+                                "Hello, $username",
+                                color = main,
+                                fontSize = 20.sp,
+                                fontFamily = Chewy
+                            )
+                        } else {
+                            Text(
+                                "Hello, Guest",
+                                color = main,
+                                fontSize = 20.sp,
+                                fontFamily = Chewy
+                            )
+                        }
                         Text(
                             "What do you want to cook today",
                             color = Color.Gray,
@@ -218,25 +271,18 @@ fun Home(
                         modifier = Modifier
                             .clip(CircleShape)
                             .size(45.dp)
-                            .clickable {
+                            .background(Color.Gray)
+                    ) {
+                        IconButton(
+                            onClick = {
                                 authviewmodel.signout()
                                 navController.navigate(route = Screens.Landing.route)
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painter,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        if (imageState is AsyncImagePainter.State.Loading) {
-                            CircularProgressIndicator(
-                                color = Color.Black,
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .align(Alignment.Center)
+                            }
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = null,
+                                tint = Color.Black
                             )
                         }
                     }
@@ -321,9 +367,15 @@ fun Home(
                             text = OptionRows[option].first,
                             isSelected = selectedOption.value == OptionRows[option].first,
                             onClick = {
-                                selectedOption.value = OptionRows[option].first
-                                loadingoption.value = OptionRows[option].second
-                                loadAnother(loadingoption.value, true)
+                                if (OptionRows[option].second != "") {
+                                    selectedOption.value = OptionRows[option].first
+                                    loadingoption.value = OptionRows[option].second
+                                    loadAnother(loadingoption.value, true)
+                                } else {
+                                    if (username != null) {
+                                        sendRequest("What should I eat today for a $age year old, $weight, $heightt, $cuisine cuisine")
+                                    }
+                                }
                             }
                         )
                         AddWidth(12.dp)
@@ -365,7 +417,22 @@ fun Home(
                             )
                         }
                     }
-                } else {
+                } else if (selectedOption.value == "Custom Plan") {
+                    Box(
+                        modifier = Modifier.constrainAs(recipedisplay) {
+                            top.linkTo(optionrow.bottom, margin = 30.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom, margin = 60.dp)
+                            width = Dimension.percent(0.9f)
+                            height = Dimension.fillToConstraints
+                        },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Please Sign-In First")
+                    }
+                }
+                else {
                     Box(
                         modifier = Modifier.constrainAs(recipedisplay) {
                             top.linkTo(optionrow.bottom, margin = 30.dp)

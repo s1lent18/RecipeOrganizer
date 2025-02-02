@@ -12,19 +12,23 @@ class Repository {
 
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 
-    fun adduser(email: String, username: String) {
+    fun adduser(email: String, username: String, age: String, weight: String, height: String, cuisine: String) {
         val usersRef = database.child("FoodAppDB")
         val currentUser = FirebaseAuth.getInstance().currentUser
 
         if (currentUser != null) {
             val userId = currentUser.uid
 
-            val user = Users(
+            val users = Users(
                 username = username,
-                email = email
+                email = email,
+                age = age,
+                height = height,
+                weight = weight,
+                cuisine = cuisine
             )
 
-            usersRef.child(userId).setValue(user)
+            usersRef.child(userId).setValue(users)
                 .addOnSuccessListener {}
                 .addOnFailureListener {}
         }

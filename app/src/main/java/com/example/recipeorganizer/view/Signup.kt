@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +52,13 @@ fun Signup(
         val (username, setusername) = remember { mutableStateOf("") }
         val (password, setpassword) = remember { mutableStateOf("") }
         val (email, setemail) = remember { mutableStateOf("") }
+        val (age, setage) = remember { mutableStateOf("") }
+        val (height, setheight) = remember { mutableStateOf("") }
+        val (weight, setweight) = remember { mutableStateOf("") }
+        val (cuisine, setcuisine) = remember { mutableStateOf("") }
         var passwordvisibility by remember { mutableStateOf(false) }
         var requestreceived by remember { mutableStateOf(false) }
-        var isLoading by remember { mutableStateOf(false) }
+        val isLoading by authviewmodel.loading.collectAsState()
         var clicked by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
         val icon = if (passwordvisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
@@ -63,7 +68,11 @@ fun Signup(
                 authviewmodel.signup(
                     username = username,
                     email = email,
-                    password = password
+                    password = password,
+                    age = age,
+                    weight = weight,
+                    height = height,
+                    cuisine = cuisine
                 )
                 clicked = false
                 requestreceived = true
@@ -113,12 +122,52 @@ fun Signup(
 
         AddHeight(30.dp)
 
+        Input(
+            label = "Age",
+            value = age,
+            onValueChange = setage,
+            color = Color.White
+        )
+
+        AddHeight(30.dp)
+
+        Input(
+            label = "height: X'X",
+            value = height,
+            onValueChange = setheight,
+            color = Color.White
+        )
+
+        AddHeight(30.dp)
+
+        Input(
+            label = "Weight: XXkg",
+            value = weight,
+            onValueChange = setweight,
+            color = Color.White
+        )
+
+        AddHeight(30.dp)
+
+        Input(
+            label = "Cuisine",
+            value = cuisine,
+            onValueChange = setcuisine,
+            color = Color.White
+        )
+
+        AddHeight(30.dp)
+
         if (!isLoading) {
             Button(
                 onClick = {
                     if (
                         username.isNotEmpty() &&
                         password.isNotEmpty() &&
+                        age.isNotEmpty() &&
+                        height.isNotEmpty() &&
+                        weight.isNotEmpty() &&
+                        cuisine.isNotEmpty() &&
                         password.length >= 8 &&
                         email.isNotEmpty() &&
                         validateEmail(email)

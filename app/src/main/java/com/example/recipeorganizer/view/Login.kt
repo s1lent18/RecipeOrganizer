@@ -21,6 +21,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,10 +97,9 @@ fun Login(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         val context = LocalContext.current
         var clicked by remember { mutableStateOf(false) }
-        var isLoading by remember { mutableStateOf(false) }
+        val isLoading by authviewmodel.loading.collectAsState()
         var requestreceived by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
         var passwordvisibility by remember { mutableStateOf(false) }
