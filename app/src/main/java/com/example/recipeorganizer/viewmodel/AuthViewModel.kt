@@ -95,6 +95,50 @@ class AuthViewModel @Inject constructor(
             }
     }
 
+    fun fetchAge(userId: String) {
+        database.child("FoodAppDB").child(userId).child("age")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    Log.d("Firebase Response:", "${snapshot.value}")
+                    _age.value = snapshot.value.toString()
+                }
+            }
+    }
+
+    fun fetchHeight(userId: String) {
+        database.child("FoodAppDB").child(userId).child("height")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    Log.d("Firebase Response:", "${snapshot.value}")
+                    _heightt.value = snapshot.value.toString()
+                }
+            }
+    }
+
+    fun fetchWeight(userId: String) {
+        database.child("FoodAppDB").child(userId).child("weight")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    Log.d("Firebase Response:", "${snapshot.value}")
+                    _weight.value = snapshot.value.toString()
+                }
+            }
+    }
+
+    fun fetchCuisine(userId: String) {
+        database.child("FoodAppDB").child(userId).child("cuisine")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    Log.d("Firebase Response:", "${snapshot.value}")
+                    _cuisine.value = snapshot.value.toString()
+                }
+            }
+    }
+
     fun getuserid() : String? {
         return FirebaseAuth.getInstance().currentUser?.uid
     }

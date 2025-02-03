@@ -144,6 +144,10 @@ class DisplayRecipesViewModel @Inject constructor(
         }
     }
 
+    fun clearRecipes() {
+        _homerecipes.value = emptyList()
+    }
+
     fun getRecipeFullInfo(
         apiKey: String = context.getString(R.string.FoodApiKey),
         id: Int

@@ -47,7 +47,7 @@ fun NavGraph(
                 displayrecipesviewmodel.getNutrients(id = id)
             },
             sendRequest = {
-                    request -> geminiviewmodel.getGeminiPrediction(request = request)
+                    request -> geminiviewmodel.getGeminiPrediction1(request = request)
             }
         ) }
 

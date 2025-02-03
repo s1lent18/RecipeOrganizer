@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
@@ -155,6 +156,11 @@ fun Home(
         val gridState = rememberLazyStaggeredGridState()
         var searchQuery by remember { mutableStateOf("") }
         val response by geminiviewmodel.response.collectAsState()
+        val breakfast by geminiviewmodel.breakfast.collectAsState()
+        val lunch by geminiviewmodel.lunch.collectAsState()
+        val dinner by geminiviewmodel.dinner.collectAsState()
+        val snack by geminiviewmodel.snacks.collectAsState()
+        var loading by remember { mutableStateOf(false) }
         val loadingoption = remember { mutableStateOf("") }
         var launchAlertBox by remember { mutableStateOf(true) }
         val selectedOption = remember { mutableStateOf("BreakFast") }
@@ -166,6 +172,8 @@ fun Home(
         val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
+
+        loading = breakfast.isEmpty() || lunch.isEmpty() || dinner.isEmpty() || snack.isEmpty()
 
         if (launchAlertBox) {
             BasicAlertDialog(
@@ -214,6 +222,10 @@ fun Home(
             val userid = authviewmodel.getuserid()
             if (userid != null) {
                 authviewmodel.fetchUsername(userid)
+                authviewmodel.fetchAge(userid)
+                authviewmodel.fetchHeight(userid)
+                authviewmodel.fetchWeight(userid)
+                authviewmodel.fetchCuisine(userid)
             }
         }
 
@@ -372,8 +384,12 @@ fun Home(
                                     loadingoption.value = OptionRows[option].second
                                     loadAnother(loadingoption.value, true)
                                 } else {
+                                    displayrecipesviewmodel.clearRecipes()
                                     if (username != null) {
-                                        sendRequest("What should I eat today for a $age year old, $weight, $heightt, $cuisine cuisine")
+                                        selectedOption.value = OptionRows[option].first
+                                        if (age != null && heightt != null && weight != null && cuisine != null) {
+                                            sendRequest("What should I eat today for a $age year old, $weight kg, $heightt, $cuisine cuisine")
+                                        }
                                     }
                                 }
                             }
@@ -429,7 +445,53 @@ fun Home(
                         },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Please Sign-In First")
+                        if (username == null) {
+                            Text("Please Sign-In First")
+                        } else if (!loading) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Log.d("Breakfast", "Response: $breakfast")
+                                Text("BreakFast", fontFamily = Bebas, fontSize = 20.sp)
+                                AddHeight(10.dp)
+                                LazyColumn {
+                                    items(breakfast) { item ->
+                                        Text(text = item, fontFamily = Oswald)
+                                        AddHeight(10.dp)
+                                    }
+                                }
+                                Text("Lunch", fontFamily = Bebas, fontSize = 20.sp)
+                                Log.d("Lunch", "Response: $lunch")
+                                AddHeight(10.dp)
+                                LazyColumn {
+                                    items(lunch) { item ->
+                                        Text(text = item, fontFamily = Oswald)
+                                        AddHeight(10.dp)
+                                    }
+                                }
+                                Text("Dinner", fontFamily = Bebas, fontSize = 20.sp)
+                                AddHeight(10.dp)
+                                LazyColumn {
+                                    items(dinner) { item ->
+                                        Text(text = item, fontFamily = Oswald)
+                                        AddHeight(10.dp)
+                                    }
+                                }
+                                Text("Snacks", fontFamily = Bebas, fontSize = 20.sp)
+                                AddHeight(10.dp)
+                                LazyColumn {
+                                    items(snack) { item ->
+                                        Text(text = item, fontFamily = Oswald)
+                                        AddHeight(10.dp)
+                                    }
+                                }
+                            }
+                        }
+                        else if(loading) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
                 else {
