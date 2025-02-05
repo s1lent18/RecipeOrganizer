@@ -1,5 +1,6 @@
 package com.example.recipeorganizer.viewmodel
 
+import com.example.recipeorganizer.models.dataprovider.Data
 import com.example.recipeorganizer.models.dataprovider.Users
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -29,6 +30,40 @@ class Repository {
             )
 
             usersRef.child(userId).setValue(users)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+        }
+    }
+
+    fun save(id: String, imageUrl: String, title: String) {
+        val usersRef = database.child("FoodAppDB")
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            val savedRef = usersRef.child(userId).child("saved")
+
+            val data = Data(
+                id = id,
+                imageUrl = imageUrl,
+                title = title
+            )
+
+            savedRef.child(id).setValue(data)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+        }
+    }
+
+    fun unsave(id: String) {
+        val usersRef = database.child("FoodAppDB")
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            val savedRef = usersRef.child(userId).child("saved")
+
+            savedRef.child(id).removeValue()
                 .addOnSuccessListener {}
                 .addOnFailureListener {}
         }

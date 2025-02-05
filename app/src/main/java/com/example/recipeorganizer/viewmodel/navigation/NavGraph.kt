@@ -6,23 +6,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.recipeorganizer.models.dataprovider.AiRequest
-import com.example.recipeorganizer.models.dataprovider.Content
-import com.example.recipeorganizer.models.dataprovider.Part
 import com.example.recipeorganizer.view.Home
 import com.example.recipeorganizer.view.Landing
 import com.example.recipeorganizer.view.Single
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
-import com.example.recipeorganizer.viewmodel.GeminiViewModel
+import com.example.recipeorganizer.viewmodel.Repository
 
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String
 ) {
-
     val displayrecipesviewmodel = hiltViewModel<DisplayRecipesViewModel>()
-    val geminiviewmodel = hiltViewModel<GeminiViewModel>()
 
     NavHost(
         navController = navController,
@@ -45,20 +40,16 @@ fun NavGraph(
                 id -> displayrecipesviewmodel.getIngredients(id = id)
                 displayrecipesviewmodel.getRecipeFullInfo(id = id)
                 displayrecipesviewmodel.getNutrients(id = id)
-            },
-            sendRequest = {
-                    request -> geminiviewmodel.getGeminiPrediction1(request = request)
             }
         ) }
 
         this.composable(
             route = Screens.Single.route
         ) {
-
-
+            val repository = Repository()
             Single(
-                navController = navController,
                 displayrecipesviewmodel = displayrecipesviewmodel,
+                repository = repository
             )
         }
     }

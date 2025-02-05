@@ -71,6 +71,7 @@ fun Landing(
 ) {
     Surface {
         val loggedIn by authviewmodel.loggedin.observeAsState(initial = false)
+        val signedIn by authviewmodel.signedup.observeAsState(initial = false)
         var isSheetopen by rememberSaveable { mutableStateOf(false) }
         var selection by remember { mutableStateOf("Login") }
         val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -87,7 +88,7 @@ fun Landing(
             ) {
                 val (iconbox, loginbutton, welcometext) = createRefs()
 
-                if(loggedIn) {
+                if(loggedIn || signedIn) {
                     LaunchedEffect(Unit) {
                         navController.navigate(route = Screens.Home.route) {
                             popUpTo(Screens.Landing.route) { inclusive = true }

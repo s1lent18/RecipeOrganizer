@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
@@ -44,6 +43,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -59,6 +59,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.recipeorganizer.models.dataprovider.Data
 import com.example.recipeorganizer.models.dataprovider.OptionRows
 import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.Chewy
@@ -149,31 +150,26 @@ fun Home(
     onLoadMore: (offset: Int) -> Unit,
     specificRecipe: (id: Int) -> Unit,
     searchRecipes: (query: String) -> Unit,
-    sendRequest: (request: String) -> Unit,
     loadAnother: (type: String, clear: Boolean) -> Unit,
 ) {
     Surface {
         val gridState = rememberLazyStaggeredGridState()
         var searchQuery by remember { mutableStateOf("") }
         val response by geminiviewmodel.response.collectAsState()
-        val breakfast by geminiviewmodel.breakfast.collectAsState()
-        val lunch by geminiviewmodel.lunch.collectAsState()
-        val dinner by geminiviewmodel.dinner.collectAsState()
-        val snack by geminiviewmodel.snacks.collectAsState()
-        var loading by remember { mutableStateOf(false) }
         val loadingoption = remember { mutableStateOf("") }
-        var launchAlertBox by remember { mutableStateOf(true) }
+        var launchAlertBox by rememberSaveable { mutableStateOf(true) }
         val selectedOption = remember { mutableStateOf("BreakFast") }
         val username by authviewmodel.username.collectAsState(initial = null)
-        val age by authviewmodel.age.collectAsState(initial = null)
-        val heightt by authviewmodel.heightt.collectAsState(initial = null)
-        val weight by authviewmodel.weight.collectAsState(initial = null)
-        val cuisine by authviewmodel.cuisine.collectAsState(initial = null)
         val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
+        var savedRecipes by remember { mutableStateOf<List<Data>>(emptyList()) }
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
 
-        loading = breakfast.isEmpty() || lunch.isEmpty() || dinner.isEmpty() || snack.isEmpty()
+        LaunchedEffect(Unit) {
+            authviewmodel.getSavedItems { savedList ->
+                savedRecipes = savedList
+            }
+        }
 
         if (launchAlertBox) {
             BasicAlertDialog(
@@ -222,10 +218,6 @@ fun Home(
             val userid = authviewmodel.getuserid()
             if (userid != null) {
                 authviewmodel.fetchUsername(userid)
-                authviewmodel.fetchAge(userid)
-                authviewmodel.fetchHeight(userid)
-                authviewmodel.fetchWeight(userid)
-                authviewmodel.fetchCuisine(userid)
             }
         }
 
@@ -385,12 +377,7 @@ fun Home(
                                     loadAnother(loadingoption.value, true)
                                 } else {
                                     displayrecipesviewmodel.clearRecipes()
-                                    if (username != null) {
-                                        selectedOption.value = OptionRows[option].first
-                                        if (age != null && heightt != null && weight != null && cuisine != null) {
-                                            sendRequest("What should I eat today for a $age year old, $weight kg, $heightt, $cuisine cuisine")
-                                        }
-                                    }
+                                    selectedOption.value = OptionRows[option].first
                                 }
                             }
                         )
@@ -433,7 +420,7 @@ fun Home(
                             )
                         }
                     }
-                } else if (selectedOption.value == "Custom Plan") {
+                } else if (selectedOption.value == "Saved-Recipes" && savedRecipes.isNotEmpty()) {
                     Box(
                         modifier = Modifier.constrainAs(recipedisplay) {
                             top.linkTo(optionrow.bottom, margin = 30.dp)
@@ -443,54 +430,36 @@ fun Home(
                             width = Dimension.percent(0.9f)
                             height = Dimension.fillToConstraints
                         },
-                        contentAlignment = Alignment.Center
                     ) {
                         if (username == null) {
                             Text("Please Sign-In First")
-                        } else if (!loading) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.Start,
-                                verticalArrangement = Arrangement.Center
+                        } else {
+                            LazyVerticalStaggeredGrid(
+                                state = gridState,
+                                columns = StaggeredGridCells.Fixed(2),
+                                verticalItemSpacing = 16.dp,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                             ) {
-                                Log.d("Breakfast", "Response: $breakfast")
-                                Text("BreakFast", fontFamily = Bebas, fontSize = 20.sp)
-                                AddHeight(10.dp)
-                                LazyColumn {
-                                    items(breakfast) { item ->
-                                        Text(text = item, fontFamily = Oswald)
-                                        AddHeight(10.dp)
-                                    }
+                                item {
+                                    Text(
+                                        text = "${savedRecipes.size} Saved Recipes",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
                                 }
-                                Text("Lunch", fontFamily = Bebas, fontSize = 20.sp)
-                                Log.d("Lunch", "Response: $lunch")
-                                AddHeight(10.dp)
-                                LazyColumn {
-                                    items(lunch) { item ->
-                                        Text(text = item, fontFamily = Oswald)
-                                        AddHeight(10.dp)
-                                    }
-                                }
-                                Text("Dinner", fontFamily = Bebas, fontSize = 20.sp)
-                                AddHeight(10.dp)
-                                LazyColumn {
-                                    items(dinner) { item ->
-                                        Text(text = item, fontFamily = Oswald)
-                                        AddHeight(10.dp)
-                                    }
-                                }
-                                Text("Snacks", fontFamily = Bebas, fontSize = 20.sp)
-                                AddHeight(10.dp)
-                                LazyColumn {
-                                    items(snack) { item ->
-                                        Text(text = item, fontFamily = Oswald)
-                                        AddHeight(10.dp)
-                                    }
+
+                                items(savedRecipes.size) { index ->
+                                    AddHeight(80.dp)
+                                    Recipe(
+                                        text = savedRecipes[index].title,
+                                        image = savedRecipes[index].imageUrl,
+                                        specificRecipe = specificRecipe,
+                                        id = savedRecipes[index].id.toInt(),
+                                        navController = navController
+                                    )
                                 }
                             }
-                        }
-                        else if(loading) {
-                            CircularProgressIndicator()
                         }
                     }
                 }

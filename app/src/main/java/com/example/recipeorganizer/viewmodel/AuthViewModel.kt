@@ -4,8 +4,12 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.recipeorganizer.models.dataprovider.Data
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,20 +28,10 @@ class AuthViewModel @Inject constructor(
     val signedup: LiveData<Boolean> = _signedup
     private val _username = MutableStateFlow<String?>(null)
     val username: StateFlow<String?> = _username
-    private val _age = MutableStateFlow<String?>(null)
-    val age: StateFlow<String?> = _age
-    private val _heightt = MutableStateFlow<String?>(null)
-    val heightt: StateFlow<String?> = _heightt
-    private val _weight = MutableStateFlow<String?>(null)
-    val weight: StateFlow<String?> = _weight
-    private val _cuisine = MutableStateFlow<String?>(null)
-    val cuisine: StateFlow<String?> = _cuisine
-    private val _email = MutableStateFlow<String?>(null)
-    val email: StateFlow<String?> = _email
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
     private val _errorMessage = MutableLiveData<String?>(null)
-    val errorMessage: LiveData<String?> get() = _errorMessage
+
 
     init {
         _loggedin.value = firebaseAuth.currentUser != null
@@ -95,51 +89,39 @@ class AuthViewModel @Inject constructor(
             }
     }
 
-    fun fetchAge(userId: String) {
-        database.child("FoodAppDB").child(userId).child("age")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    Log.d("Firebase Response:", "${snapshot.value}")
-                    _age.value = snapshot.value.toString()
-                }
-            }
-    }
-
-    fun fetchHeight(userId: String) {
-        database.child("FoodAppDB").child(userId).child("height")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    Log.d("Firebase Response:", "${snapshot.value}")
-                    _heightt.value = snapshot.value.toString()
-                }
-            }
-    }
-
-    fun fetchWeight(userId: String) {
-        database.child("FoodAppDB").child(userId).child("weight")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    Log.d("Firebase Response:", "${snapshot.value}")
-                    _weight.value = snapshot.value.toString()
-                }
-            }
-    }
-
-    fun fetchCuisine(userId: String) {
-        database.child("FoodAppDB").child(userId).child("cuisine")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                if (snapshot.exists()) {
-                    Log.d("Firebase Response:", "${snapshot.value}")
-                    _cuisine.value = snapshot.value.toString()
-                }
-            }
-    }
-
     fun getuserid() : String? {
         return FirebaseAuth.getInstance().currentUser?.uid
+    }
+
+    fun getSavedItems(callback: (List<Data>) -> Unit) {
+        val usersRef = database.child("FoodAppDB")
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            val savedRef = usersRef.child(userId).child("saved")
+
+            savedRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val savedItems = mutableListOf<Data>()
+
+                    for (child in snapshot.children) {
+                        val id = child.key ?: ""
+                        val imageUrl = child.child("imageUrl").getValue(String::class.java) ?: ""
+                        val title = child.child("title").getValue(String::class.java) ?: ""
+
+                        if (id.isNotEmpty() && imageUrl.isNotEmpty()) {
+                            savedItems.add(Data(id, imageUrl, title))
+                        }
+                    }
+
+                    callback(savedItems)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("Firebase", "Error fetching saved items", error.toException())
+                }
+            })
+        }
     }
 }

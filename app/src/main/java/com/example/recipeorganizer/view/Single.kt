@@ -25,7 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.AddTask
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,13 +57,13 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.Chewy
 import com.example.recipeorganizer.ui.theme.Oswald
+import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
-import com.example.recipeorganizer.viewmodel.navigation.Screens
+import com.example.recipeorganizer.viewmodel.Repository
 
 @Composable
 fun PieChart(
@@ -216,7 +216,7 @@ fun DetailsPieChartItem(
 @Composable
 fun IngredientsRow(
     context : Context,
-    image: String,
+    image: String?,
     name: String
 ) {
     Column(
@@ -249,7 +249,7 @@ fun IngredientsRow(
 
 @Composable
 fun Single(
-    navController: NavController,
+    repository: Repository,
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
 ) {
     Surface {
@@ -258,6 +258,7 @@ fun Single(
         val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
         val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
         val context = LocalContext.current
+        var saved by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -324,27 +325,22 @@ fun Single(
                             width = Dimension.percent(0.95f)
                         },
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.End
                     ) {
                         IconButton(
                             onClick = {
-                                navController.navigate(route = Screens.Home.route)
+                                if (!saved) {
+                                    repository.save(id = recipe!!.id.toString(), imageUrl = recipe!!.image, title = recipe!!.title)
+                                    saved = true
+                                } else {
+                                    repository.unsave(id = recipe!!.id.toString())
+                                    saved = false
+                                }
                             }
                         ) {
                             Icon(
-                                Icons.Default.ArrowBackIosNew,
+                                imageVector = if(!saved) Icons.Default.Bookmark else Icons.Default.AddTask,
                                 contentDescription = null,
-                                tint = Color.Black
-                            )
-                        }
-
-                        IconButton(
-                            onClick = {}
-                        ) {
-                            Icon(
-                                Icons.Default.Bookmark,
-                                contentDescription = null,
-                                tint = Color.Black
                             )
                         }
                     }
@@ -359,9 +355,9 @@ fun Single(
                                 start.linkTo(parent.start)
                                 width = Dimension.percent(0.4f)
                             },
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -379,16 +375,19 @@ fun Single(
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(30.dp)
-                                        .padding(top = 5.dp, start = 5.dp, bottom = 5.dp)
+                                        .padding(top = 5.dp, start = 5.dp, bottom = 5.dp),
+                                    tint = sec
                                 )
 
                                 Text(
                                     "${recipe!!.readyInMinutes} Minutes",
                                     modifier = Modifier.padding(end = 8.dp, top = 5.dp, bottom = 5.dp),
-                                    fontSize = 12.sp
+                                    fontSize = 12.sp,
+                                    color = sec
                                 )
                             }
                         }
+
                     }
 
                     Column (
