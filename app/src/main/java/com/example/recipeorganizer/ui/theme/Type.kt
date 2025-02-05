@@ -46,3 +46,7 @@ val Oswald = FontFamily(
 val Chewy = FontFamily(
     Font(R.font.chewy)
 )
+
+val CC = FontFamily(
+    Font(R.font.cookiecrisp)
+)

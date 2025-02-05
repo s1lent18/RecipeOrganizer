@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.recipeorganizer.models.dataprovider.Data
+import com.example.recipeorganizer.models.response.NetworkResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -28,19 +29,20 @@ class AuthViewModel @Inject constructor(
     val signedup: LiveData<Boolean> = _signedup
     private val _username = MutableStateFlow<String?>(null)
     val username: StateFlow<String?> = _username
-    private val _loading = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading
+    private val _loading = MutableLiveData<NetworkResponse<Boolean>>()
+    val loading: LiveData<NetworkResponse<Boolean>> = _loading
     private val _errorMessage = MutableLiveData<String?>(null)
-
 
     init {
         _loggedin.value = firebaseAuth.currentUser != null
     }
 
     fun signin(email: String, password: String) {
+        _loading.value = NetworkResponse.Loading
         firebaseAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    _loading.value = NetworkResponse.Success(task.result.user != null)
                     _loggedin.value = true
                     val userId = firebaseAuth.currentUser?.uid
                     if (userId != null) {
@@ -48,20 +50,24 @@ class AuthViewModel @Inject constructor(
                     }
                 } else {
                     _errorMessage.value = "Wrong Email/Password"
+                    _loading.value = NetworkResponse.Failure("")
                 }
             }
     }
 
-    fun signup(email: String, password: String, username: String, age: String, weight: String, height: String, cuisine: String) {
+    fun signup(email: String, password: String, username: String, age: String, weight: String, height: String) {
+        _loading.value = NetworkResponse.Loading
         repository.checkUsernameAvailability(username) { isAvailable ->
             if (isAvailable) {
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            repository.adduser(email, username, age, weight, height, cuisine)
+                            _loading.value = NetworkResponse.Success(task.result.user != null)
+                            repository.adduser(email, username, age, weight, height)
                             _signedup.value = true
                             Log.d("Firebase", "Check")
                         } else {
+                            _loading.value = NetworkResponse.Failure("")
                             _errorMessage.value = "Email Already in use"
                             Log.d("Firebase", "Failed")
                         }

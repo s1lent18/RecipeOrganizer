@@ -59,9 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.R
-import com.example.recipeorganizer.ui.theme.Chewy
-import com.example.recipeorganizer.ui.theme.Oswald
-import com.example.recipeorganizer.ui.theme.sec
+import com.example.recipeorganizer.ui.theme.Bebas
+import com.example.recipeorganizer.ui.theme.CC
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 import com.example.recipeorganizer.viewmodel.Repository
 
@@ -242,7 +241,7 @@ fun IngredientsRow(
         Text(
             text = name,
             fontSize = 12.sp,
-            fontFamily = Chewy
+            fontFamily = Bebas
         )
     }
 }
@@ -253,12 +252,20 @@ fun Single(
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
 ) {
     Surface {
-
         val recipe by displayrecipesviewmodel.recipefullinfo.collectAsStateWithLifecycle()
         val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
         val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
         val context = LocalContext.current
         var saved by remember { mutableStateOf(false) }
+
+        LaunchedEffect(recipe) {
+            // Check if recipe is non-null before accessing its properties
+            recipe?.let {
+                repository.isSaved(id = it.id.toString()) { ret ->
+                    saved = ret
+                }
+            }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -327,21 +334,28 @@ fun Single(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.End
                     ) {
-                        IconButton(
-                            onClick = {
-                                if (!saved) {
-                                    repository.save(id = recipe!!.id.toString(), imageUrl = recipe!!.image, title = recipe!!.title)
-                                    saved = true
-                                } else {
-                                    repository.unsave(id = recipe!!.id.toString())
-                                    saved = false
-                                }
-                            }
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .size(45.dp)
+                                .background(Color.Gray)
                         ) {
-                            Icon(
-                                imageVector = if(!saved) Icons.Default.Bookmark else Icons.Default.AddTask,
-                                contentDescription = null,
-                            )
+                            IconButton(
+                                onClick = {
+                                    if (!saved) {
+                                        repository.save(id = recipe!!.id.toString(), imageUrl = recipe!!.image, title = recipe!!.title)
+                                        saved = true
+                                    } else {
+                                        repository.unsave(id = recipe!!.id.toString())
+                                        saved = false
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if(!saved) Icons.Default.Bookmark else Icons.Default.AddTask,
+                                    contentDescription = null,
+                                )
+                            }
                         }
                     }
 
@@ -376,14 +390,14 @@ fun Single(
                                     modifier = Modifier
                                         .size(30.dp)
                                         .padding(top = 5.dp, start = 5.dp, bottom = 5.dp),
-                                    tint = sec
+                                    tint = Color.White
                                 )
 
                                 Text(
                                     "${recipe!!.readyInMinutes} Minutes",
                                     modifier = Modifier.padding(end = 8.dp, top = 5.dp, bottom = 5.dp),
                                     fontSize = 12.sp,
-                                    color = sec
+                                    color = Color.White
                                 )
                             }
                         }
@@ -403,7 +417,7 @@ fun Single(
                         Text(
                             recipe!!.title,
                             fontSize = 20.sp,
-                            fontFamily = Oswald
+                            fontFamily = Bebas
                         )
                     }
 
@@ -435,7 +449,7 @@ fun Single(
                             Text(
                                 text = "Ingredients",
                                 fontSize = 20.sp,
-                                fontFamily = Chewy
+                                fontFamily = CC
                             )
                             AddHeight(5.dp)
                             LazyRow(

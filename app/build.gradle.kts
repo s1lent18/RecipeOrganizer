@@ -92,4 +92,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.fragment)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    implementation (libs.androidx.runtime.livedata)
+
 }

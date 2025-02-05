@@ -13,7 +13,7 @@ class Repository {
 
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 
-    fun adduser(email: String, username: String, age: String, weight: String, height: String, cuisine: String) {
+    fun adduser(email: String, username: String, age: String, weight: String, height: String) {
         val usersRef = database.child("FoodAppDB")
         val currentUser = FirebaseAuth.getInstance().currentUser
 
@@ -26,12 +26,31 @@ class Repository {
                 age = age,
                 height = height,
                 weight = weight,
-                cuisine = cuisine
             )
 
             usersRef.child(userId).setValue(users)
                 .addOnSuccessListener {}
                 .addOnFailureListener {}
+        }
+    }
+
+    fun isSaved(id: String, callback: (Boolean) -> Unit) {
+        val usersRef = database.child("FoodAppDB")
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            val userId = currentUser.uid
+            val savedRef = usersRef.child(userId).child("saved").child(id)
+
+            savedRef.get()
+                .addOnSuccessListener { snapshot ->
+                    callback(snapshot.exists())
+                }
+                .addOnFailureListener {
+                    callback(false)
+                }
+        } else {
+            callback(false)
         }
     }
 

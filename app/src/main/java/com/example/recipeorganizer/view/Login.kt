@@ -21,7 +21,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +42,8 @@ import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
 import com.example.recipeorganizer.viewmodel.AuthViewModel
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.recipeorganizer.models.response.NetworkResponse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,7 +100,7 @@ fun Login(
     ) {
         val context = LocalContext.current
         var clicked by remember { mutableStateOf(false) }
-        val isLoading by authviewmodel.loading.collectAsState()
+        val isLoading by authviewmodel.loading.observeAsState()
         var requestreceived by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
         var passwordvisibility by remember { mutableStateOf(false) }
@@ -149,7 +150,7 @@ fun Login(
 
         AddHeight(30.dp)
 
-        if (!isLoading) {
+        if (!requestreceived) {
             Button(
                 onClick = {
                     if (username.isNotEmpty() && password.isNotEmpty()) {
@@ -175,8 +176,33 @@ fun Login(
             ) {
                 Text("Login")
             }
-        } else {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+        }
+
+        when (isLoading) {
+            is NetworkResponse.Failure -> {
+                Button(
+                    onClick = {
+                        requestreceived = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(fraction = 0.85f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = sec,
+                        contentColor = text
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Sign-In Failed")
+                }
+            }
+            NetworkResponse.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
+            }
+            is NetworkResponse.Success -> {
+
+            }
+            null -> {}
         }
         AddHeight(30.dp)
     }

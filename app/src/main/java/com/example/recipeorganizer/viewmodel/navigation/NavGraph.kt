@@ -30,7 +30,9 @@ fun NavGraph(
 
         this.composable(
             route = Screens.Home.route
-        ) { Home(
+        ) {
+            val repository = Repository()
+            Home(
             navController = navController,
             displayrecipesviewmodel = displayrecipesviewmodel,
             onLoadMore = { offset -> displayrecipesviewmodel.getRecipes(offset = offset) },

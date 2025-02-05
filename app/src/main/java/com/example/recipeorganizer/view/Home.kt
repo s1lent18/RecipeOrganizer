@@ -61,8 +61,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.models.dataprovider.Data
 import com.example.recipeorganizer.models.dataprovider.OptionRows
-import com.example.recipeorganizer.ui.theme.Bebas
-import com.example.recipeorganizer.ui.theme.Chewy
+import com.example.recipeorganizer.ui.theme.CC
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.ui.theme.sec
@@ -81,7 +80,7 @@ fun TextRow(
         Text(
             text = text,
             modifier = Modifier.clickable { onClick() },
-            fontFamily = Oswald,
+            fontFamily = CC,
             fontSize = 20.sp
         )
     } else {
@@ -89,7 +88,7 @@ fun TextRow(
             text = text,
             color = Color.Gray,
             modifier = Modifier.clickable { onClick() },
-            fontFamily = Oswald,
+            fontFamily = CC,
             fontSize = 20.sp
         )
     }
@@ -158,7 +157,7 @@ fun Home(
         val response by geminiviewmodel.response.collectAsState()
         val loadingoption = remember { mutableStateOf("") }
         var launchAlertBox by rememberSaveable { mutableStateOf(true) }
-        val selectedOption = remember { mutableStateOf("BreakFast") }
+        val selectedOption = rememberSaveable { mutableStateOf("BreakFast") }
         val username by authviewmodel.username.collectAsState(initial = null)
         val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
@@ -188,7 +187,7 @@ fun Home(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             AddHeight(20.dp)
-                            Text("Health Tip", fontSize = 20.sp, color = sec, fontFamily = Bebas)
+                            Text("Health Tip", fontSize = 20.sp, color = sec, fontFamily = CC)
                             AddHeight(20.dp)
                             response?.candidates?.get(0)?.content?.parts?.get(0)?.let {
                                 Text(
@@ -253,14 +252,14 @@ fun Home(
                                 "Hello, $username",
                                 color = main,
                                 fontSize = 20.sp,
-                                fontFamily = Chewy
+                                fontFamily = CC
                             )
                         } else {
                             Text(
                                 "Hello, Guest",
                                 color = main,
                                 fontSize = 20.sp,
-                                fontFamily = Chewy
+                                fontFamily = CC
                             )
                         }
                         Text(

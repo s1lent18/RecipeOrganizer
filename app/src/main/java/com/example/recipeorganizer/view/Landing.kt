@@ -49,6 +49,7 @@ import com.example.recipeorganizer.ui.theme.sec
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.recipeorganizer.ui.theme.CC
 import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
@@ -135,7 +136,7 @@ fun Landing(
                             "Your personal guide to discovering healthy and delicious recipes, tailored just for you!",
                             color = main,
                             fontSize = 20.sp,
-                            fontFamily = Oswald,
+                            fontFamily = CC,
                             textAlign = TextAlign.Center,
                             lineHeight = 35.sp,
                             modifier = Modifier

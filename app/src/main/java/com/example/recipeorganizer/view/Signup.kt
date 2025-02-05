@@ -15,8 +15,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.recipeorganizer.R
+import com.example.recipeorganizer.models.response.NetworkResponse
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
 import com.example.recipeorganizer.viewmodel.AuthViewModel
@@ -55,10 +56,9 @@ fun Signup(
         val (age, setage) = remember { mutableStateOf("") }
         val (height, setheight) = remember { mutableStateOf("") }
         val (weight, setweight) = remember { mutableStateOf("") }
-        val (cuisine, setcuisine) = remember { mutableStateOf("") }
         var passwordvisibility by remember { mutableStateOf(false) }
         var requestreceived by remember { mutableStateOf(false) }
-        val isLoading by authviewmodel.loading.collectAsState()
+        val isLoading by authviewmodel.loading.observeAsState()
         var clicked by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
         val icon = if (passwordvisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
@@ -72,7 +72,6 @@ fun Signup(
                     age = age,
                     weight = weight,
                     height = height,
-                    cuisine = cuisine
                 )
                 clicked = false
                 requestreceived = true
@@ -149,16 +148,7 @@ fun Signup(
 
         AddHeight(30.dp)
 
-        Input(
-            label = "Cuisine",
-            value = cuisine,
-            onValueChange = setcuisine,
-            color = Color.White
-        )
-
-        AddHeight(30.dp)
-
-        if (!isLoading) {
+        if (!requestreceived) {
             Button(
                 onClick = {
                     if (
@@ -167,7 +157,6 @@ fun Signup(
                         age.isNotEmpty() &&
                         height.isNotEmpty() &&
                         weight.isNotEmpty() &&
-                        cuisine.isNotEmpty() &&
                         password.length >= 8 &&
                         email.isNotEmpty() &&
                         validateEmail(email)
@@ -202,9 +191,35 @@ fun Signup(
             ) {
                 Text("Signup")
             }
-        } else {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp))
         }
+
+        when (isLoading) {
+            is NetworkResponse.Failure -> {
+                Button(
+                    onClick = {
+                        requestreceived = false
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(fraction = 0.85f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = sec,
+                        contentColor = text
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Sign-Up Failed")
+                }
+            }
+            NetworkResponse.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
+            }
+            is NetworkResponse.Success -> {
+
+            }
+            null -> {}
+        }
+
         AddHeight(30.dp)
     }
 }

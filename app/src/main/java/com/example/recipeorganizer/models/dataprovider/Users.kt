@@ -5,6 +5,5 @@ data class Users(
     val email: String,
     val age: String,
     val height: String,
-    val weight: String,
-    val cuisine: String
+    val weight: String
 )

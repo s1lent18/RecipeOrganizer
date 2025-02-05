@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.recipeorganizer.ui.theme.Chewy
+import com.example.recipeorganizer.ui.theme.CC
 import com.example.recipeorganizer.ui.theme.RecipeOrganizerTheme
 import com.example.recipeorganizer.ui.theme.sec
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,7 +56,6 @@ class SplashActivity : ComponentActivity() {
 
         LaunchedEffect(Unit) {
             for (i in 0 until max(first.length, last.length)) {
-                delay(300)
 
                 val leftChar = if (i < first.length) first[first.length - 1 - i] else null
                 val rightChar = if (i < last.length) last[i] else null
@@ -64,7 +63,9 @@ class SplashActivity : ComponentActivity() {
                 displayedText = buildString {
                     if (leftChar != null) append(leftChar)
                     append(displayedText)
+                    delay(300)
                     if (rightChar != null) append(rightChar)
+                    delay(300)
                 }
             }
             delay(500)
@@ -80,7 +81,7 @@ class SplashActivity : ComponentActivity() {
                 text = displayedText,
                 fontSize = 45.sp,
                 color = sec,
-                fontFamily = Chewy,
+                fontFamily = CC,
                 fontWeight = FontWeight.Bold
             )
         }
