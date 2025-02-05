@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.CC
+import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 import com.example.recipeorganizer.viewmodel.Repository
 
@@ -249,14 +251,23 @@ fun IngredientsRow(
 @Composable
 fun Single(
     repository: Repository,
+    authviewmodel: AuthViewModel = hiltViewModel(),
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
 ) {
     Surface {
         val recipe by displayrecipesviewmodel.recipefullinfo.collectAsStateWithLifecycle()
         val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
         val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
+        val username by authviewmodel.username.collectAsState(initial = null)
         val context = LocalContext.current
         var saved by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            val userid = authviewmodel.getuserid()
+            if (userid != null) {
+                authviewmodel.fetchUsername(userid)
+            }
+        }
 
         LaunchedEffect(recipe) {
             // Check if recipe is non-null before accessing its properties
@@ -324,37 +335,39 @@ fun Single(
                             )
                         }
                     }
-                    Row(
-                        modifier = Modifier.constrainAs(navigationrow) {
-                            top.linkTo(parent.top, margin = 30.dp)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            width = Dimension.percent(0.95f)
-                        },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(45.dp)
-                                .background(Color.Gray)
+                    if (username != null) {
+                        Row(
+                            modifier = Modifier.constrainAs(navigationrow) {
+                                top.linkTo(parent.top, margin = 30.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                width = Dimension.percent(0.95f)
+                            },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            IconButton(
-                                onClick = {
-                                    if (!saved) {
-                                        repository.save(id = recipe!!.id.toString(), imageUrl = recipe!!.image, title = recipe!!.title)
-                                        saved = true
-                                    } else {
-                                        repository.unsave(id = recipe!!.id.toString())
-                                        saved = false
-                                    }
-                                }
+                            Box(
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(45.dp)
+                                    .background(Color.Gray)
                             ) {
-                                Icon(
-                                    imageVector = if(!saved) Icons.Default.Bookmark else Icons.Default.AddTask,
-                                    contentDescription = null,
-                                )
+                                IconButton(
+                                    onClick = {
+                                        if (!saved) {
+                                            repository.save(id = recipe!!.id.toString(), imageUrl = recipe!!.image, title = recipe!!.title)
+                                            saved = true
+                                        } else {
+                                            repository.unsave(id = recipe!!.id.toString())
+                                            saved = false
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = if(!saved) Icons.Default.Bookmark else Icons.Default.AddTask,
+                                        contentDescription = null,
+                                    )
+                                }
                             }
                         }
                     }

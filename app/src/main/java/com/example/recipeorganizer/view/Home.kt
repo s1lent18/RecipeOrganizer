@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -419,20 +420,18 @@ fun Home(
                             )
                         }
                     }
-                } else if (selectedOption.value == "Saved-Recipes" && savedRecipes.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier.constrainAs(recipedisplay) {
-                            top.linkTo(optionrow.bottom, margin = 30.dp)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(parent.bottom, margin = 60.dp)
-                            width = Dimension.percent(0.9f)
-                            height = Dimension.fillToConstraints
-                        },
-                    ) {
-                        if (username == null) {
-                            Text("Please Sign-In First")
-                        } else {
+                } else if (selectedOption.value == "Saved-Recipes") {
+                    if (savedRecipes.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier.constrainAs(recipedisplay) {
+                                top.linkTo(optionrow.bottom, margin = 30.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(parent.bottom, margin = 60.dp)
+                                width = Dimension.percent(0.9f)
+                                height = Dimension.fillToConstraints
+                            },
+                        ) {
                             LazyVerticalStaggeredGrid(
                                 state = gridState,
                                 columns = StaggeredGridCells.Fixed(2),
@@ -459,6 +458,42 @@ fun Home(
                                     )
                                 }
                             }
+                        }
+                    } else if (username == null) {
+                        Box(
+                            modifier = Modifier.constrainAs(recipedisplay) {
+                                top.linkTo(optionrow.bottom, margin = 30.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(parent.bottom, margin = 60.dp)
+                                width = Dimension.percent(0.9f)
+                                height = Dimension.fillToConstraints
+                            },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column (
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(Icons.Default.Lock, contentDescription = null)
+                                AddHeight(20.dp)
+                                Text("Please Sign-In First")
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.constrainAs(recipedisplay) {
+                                top.linkTo(optionrow.bottom, margin = 30.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(parent.bottom, margin = 60.dp)
+                                width = Dimension.percent(0.9f)
+                                height = Dimension.fillToConstraints
+                            },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
                 }
