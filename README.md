@@ -8,7 +8,7 @@ TasteBuds
 
 ## Download
 
-Go to the [releases page](https://github.com/s1lent18/Mezbaan/releases) to download the latest available apk.
+Go to the [releases page](https://github.com/s1lent18/RecipeOrganizer/releases) to download the latest available apk.
 
 ## Screenshots
 
@@ -41,6 +41,7 @@ Go to the [releases page](https://github.com/s1lent18/Mezbaan/releases) to downl
 
 - [x] Recipe Searching
 - [x] Calorie Count Tracking
-- [x]  
+- [x] Notifies @ Cooking Time
+- [X] Motivational Prompts 
 
 
