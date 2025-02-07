@@ -1,6 +1,6 @@
 <h1 align="center">
 <br>
-  <img src="screenshots/Mezbaan.png" width="300" alt="TasteBuds">
+  <img src="screenshots/SS1.png" width="300" alt="TasteBuds">
 <br>
 <br>
 TasteBuds
@@ -13,17 +13,12 @@ Go to the [releases page](https://github.com/s1lent18/RecipeOrganizer/releases) 
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/Landing.png" width="250" alt="Landing">
-  <img src="screenshots/Login.png" width="250" alt="Login">
-  <img src="screenshots/Signup.png" width="250" alt="Signup">
-  <img src="screenshots/Home.png" width="250" alt="Home">
-  <img src="screenshots/Account.png" width="250" alt="Account">
-  <img src="screenshots/Venue.png" width="250" alt="Venue">
-  <img src="screenshots/VenueBook.png" width="250" alt="VenueBook">
-  <img src="screenshots/photographer.png" width="250" alt="Photographer">
-  <img src="screenshots/review.png" width="250" alt="review">
-  <img src="screenshots/reviewdisplay.png" width="250" alt="Review Display">
-  <img src="screenshots/Booking.png" width="250" alt="Booking">
+  <img src="screenshots/Landing1.png" width="250" alt="Landing">
+  <img src="screenshots/Login1.png" width="250" alt="Login">
+  <img src="screenshots/SignUp1.png" width="250" alt="Signup">
+  <img src="screenshots/Home1.png" width="250" alt="Home">
+  <img src="screenshots/Prompt1.png" width="250" alt="Photographer">
+  <img src="screenshots/Single1.png" width="250" alt="review">
 </p>
 
 ## Development Roadmap
