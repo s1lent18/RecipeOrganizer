@@ -38,6 +38,5 @@ Go to the [releases page](https://github.com/s1lent18/RecipeOrganizer/releases) 
 - [x] Recipe Searching
 - [x] Calorie Count Tracking
 - [x] Notifies @ Cooking Time
-- [X] Motivational Prompts 
-
-
+- [x] Motivational Prompts 
+- [x] Instructions and Ingredients
