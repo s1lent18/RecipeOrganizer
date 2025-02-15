@@ -31,6 +31,7 @@ Go to the [releases page](https://github.com/s1lent18/RecipeOrganizer/releases) 
 - [x] [Retrofit](https://square.github.io/retrofit/)
 - [x] [Jetpack Compose](https://developer.android.com/jetpack/compose)
 - [x] [Firebase](https://firebase.google.com/)
+- [x] [Ai Studio](https://aistudio.google.com/)  
 
 ## Features
 
