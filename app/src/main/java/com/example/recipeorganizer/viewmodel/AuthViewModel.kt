@@ -25,8 +25,6 @@ class AuthViewModel @Inject constructor(
 
     private val _loggedin = MutableLiveData<Boolean>()
     val loggedin: LiveData<Boolean> = _loggedin
-    private val _signedup = MutableLiveData<Boolean>()
-    val signedup: LiveData<Boolean> = _signedup
     private val _username = MutableStateFlow<String?>(null)
     val username: StateFlow<String?> = _username
     private val _loading = MutableLiveData<NetworkResponse<Boolean>>()
@@ -62,9 +60,9 @@ class AuthViewModel @Inject constructor(
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            _loggedin.value = true
                             _loading.value = NetworkResponse.Success(task.result.user != null)
                             repository.adduser(email, username, age, weight, height)
-                            _signedup.value = true
                             Log.d("Firebase", "Check")
                         } else {
                             _loading.value = NetworkResponse.Failure("")
@@ -73,6 +71,7 @@ class AuthViewModel @Inject constructor(
                         }
                     }
             } else {
+                _loading.value = NetworkResponse.Failure("")
                 _errorMessage.value = "Username Already in Use"
                 Log.d("Firebase", "1Failed")
             }

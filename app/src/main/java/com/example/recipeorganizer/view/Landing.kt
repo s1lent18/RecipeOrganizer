@@ -50,7 +50,6 @@ import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.recipeorganizer.ui.theme.CC
-import com.example.recipeorganizer.ui.theme.Oswald
 import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
 
@@ -72,7 +71,6 @@ fun Landing(
 ) {
     Surface {
         val loggedIn by authviewmodel.loggedin.observeAsState(initial = false)
-        val signedIn by authviewmodel.signedup.observeAsState(initial = false)
         var isSheetopen by rememberSaveable { mutableStateOf(false) }
         var selection by remember { mutableStateOf("Login") }
         val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -89,7 +87,7 @@ fun Landing(
             ) {
                 val (iconbox, loginbutton, welcometext) = createRefs()
 
-                if(loggedIn || signedIn) {
+                if(loggedIn) {
                     LaunchedEffect(Unit) {
                         navController.navigate(route = Screens.Home.route) {
                             popUpTo(Screens.Landing.route) { inclusive = true }
@@ -234,6 +232,7 @@ fun Landing(
                         }
                         else if(selection == "Signup") {
                             Signup(
+                                navController = navController,
                                 authviewmodel = authviewmodel
                             )
                         }

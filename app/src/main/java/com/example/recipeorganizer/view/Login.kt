@@ -178,31 +178,33 @@ fun Login(
             }
         }
 
-        when (isLoading) {
-            is NetworkResponse.Failure -> {
-                Button(
-                    onClick = {
-                        requestreceived = false
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(fraction = 0.85f)
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = sec,
-                        contentColor = text
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text("Sign-In Failed")
+        if (requestreceived) {
+            when (isLoading) {
+                is NetworkResponse.Failure -> {
+                    Button(
+                        onClick = {
+                            requestreceived = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(fraction = 0.85f)
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = sec,
+                            contentColor = text
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Sign-In Failed")
+                    }
                 }
-            }
-            NetworkResponse.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
-            }
-            is NetworkResponse.Success -> {
+                NetworkResponse.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
+                }
+                is NetworkResponse.Success -> {
 
+                }
+                null -> {}
             }
-            null -> {}
         }
         AddHeight(30.dp)
     }

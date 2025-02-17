@@ -21,10 +21,9 @@ class NotificationViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("ScheduleExactAlarm")
     fun scheduleNotification(timeInMillis: Long, title: String, message: String) {
-        val alarMManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
         val alarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        if (!alarmManager.canScheduleExactAlarms()) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !canScheduleExactAlarmsCompat(alarmManager)) {
             val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             application.startActivity(intent)
@@ -42,10 +41,19 @@ class NotificationViewModel @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        alarMManager.setExactAndAllowWhileIdle(
+        alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             timeInMillis,
             pendingIntent
         )
+    }
+
+    private fun canScheduleExactAlarmsCompat(alarmManager: AlarmManager): Boolean {
+        return try {
+            val method = AlarmManager::class.java.getMethod("canScheduleExactAlarms")
+            method.invoke(alarmManager) as Boolean
+        } catch (e: Exception) {
+            false // If the method does not exist, assume permission is needed
+        }
     }
 }

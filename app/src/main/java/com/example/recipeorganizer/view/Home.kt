@@ -481,20 +481,6 @@ fun Home(
                                 Text("Please Sign-In First")
                             }
                         }
-                    } else {
-                        Box(
-                            modifier = Modifier.constrainAs(recipedisplay) {
-                                top.linkTo(optionrow.bottom, margin = 30.dp)
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                                bottom.linkTo(parent.bottom, margin = 60.dp)
-                                width = Dimension.percent(0.9f)
-                                height = Dimension.fillToConstraints
-                            },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
                     }
                 }
                 else {

@@ -21,6 +21,9 @@ import com.example.recipeorganizer.viewmodel.navigation.Screens
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 import android.Manifest
+import android.app.AlarmManager
+import android.content.Intent
+import android.provider.Settings
 
 
 @Suppress("DEPRECATION")
@@ -34,18 +37,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(
-                    this, Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED) {
-
-                // Request permission if not granted
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    permissionRequestCode
-                )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            if (alarmManager != null && alarmManager.canScheduleExactAlarms()) {
+                // Schedule exact alarm here
+            } else {
+                // Optionally, guide the user to settings
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
             }
+        } else {
+            // Older versions of Android (API < 31) do not require this permission
+            // Schedule exact alarm directly
         }
 
         val viewModel: NotificationViewModel = ViewModelProvider(this)[NotificationViewModel::class.java]

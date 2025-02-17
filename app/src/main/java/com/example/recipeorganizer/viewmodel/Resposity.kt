@@ -89,15 +89,26 @@ class Repository {
     }
 
     fun checkUsernameAvailability(username: String, onResult: (Boolean) -> Unit) {
-        database.child("TasteBudsDB").orderByChild("username").equalTo(username)
+        database.child("FoodAppDB")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    onResult(!snapshot.exists())
+                    var isAvailable = true
+
+                    for (userSnapshot in snapshot.children) {
+                        val existingUsername = userSnapshot.child("username").getValue(String::class.java)
+                        if (existingUsername == username) {
+                            isAvailable = false
+                            break
+                        }
+                    }
+
+                    onResult(isAvailable)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    onResult(false)
+                    onResult(false) // Assume unavailable on error
                 }
             })
     }
+
 }

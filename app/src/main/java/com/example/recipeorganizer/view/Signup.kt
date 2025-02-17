@@ -29,11 +29,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.models.response.NetworkResponse
 import com.example.recipeorganizer.ui.theme.sec
 import com.example.recipeorganizer.ui.theme.text
 import com.example.recipeorganizer.viewmodel.AuthViewModel
+import com.example.recipeorganizer.viewmodel.navigation.Screens
 
 fun validateEmail(email: String): Boolean {
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$".toRegex()
@@ -42,6 +44,7 @@ fun validateEmail(email: String): Boolean {
 
 @Composable
 fun Signup(
+    navController: NavController,
     authviewmodel: AuthViewModel
 ) {
     Column(
@@ -193,31 +196,33 @@ fun Signup(
             }
         }
 
-        when (isLoading) {
-            is NetworkResponse.Failure -> {
-                Button(
-                    onClick = {
-                        requestreceived = false
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(fraction = 0.85f)
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = sec,
-                        contentColor = text
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text("Sign-Up Failed")
+        if (requestreceived) {
+            when (isLoading) {
+                is NetworkResponse.Failure -> {
+                    Button(
+                        onClick = {
+                            requestreceived = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(fraction = 0.85f)
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = sec,
+                            contentColor = text
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Sign-Up Failed")
+                    }
                 }
+                NetworkResponse.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
+                }
+                is NetworkResponse.Success -> {
+                    navController.navigate(route = Screens.Home.route)
+                }
+                null -> {}
             }
-            NetworkResponse.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = sec)
-            }
-            is NetworkResponse.Success -> {
-
-            }
-            null -> {}
         }
 
         AddHeight(30.dp)
