@@ -27,6 +27,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddTask
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +63,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.R
 import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.CC
+import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 import com.example.recipeorganizer.viewmodel.Repository
@@ -433,13 +436,14 @@ fun Single(
                     LazyColumn (
                         modifier = Modifier
                             .constrainAs(nuts) {
-                                top.linkTo(desc.bottom, margin = 10.dp)
+                                top.linkTo(desc.bottom, margin = 20.dp)
                                 start.linkTo(parent.start)
                                 end.linkTo(parent.end)
                                 width = Dimension.percent(0.9f)
-                                height = Dimension.wrapContent
+                                height = Dimension.fillToConstraints
+                                bottom.linkTo(parent.bottom, margin = 20.dp)
                             }
-                            .heightIn(max = 600.dp),
+                            .fillMaxHeight(),
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -475,7 +479,35 @@ fun Single(
                                     AddWidth(20.dp)
                                 }
                             }
-                            AddHeight(40.dp)
+                            AddHeight(20.dp)
+                        }
+
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(Color.Transparent)
+                                    .height(50.dp)
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Button(
+                                    onClick = {},
+                                    modifier = Modifier
+                                        .height(50.dp)
+                                        .fillMaxWidth(fraction = 0.9f),
+                                    elevation = ButtonDefaults.elevatedButtonElevation(
+                                        defaultElevation = 20.dp
+                                    ),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = main,
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    Text("Start Cooking")
+                                }
+                            }
+                            AddHeight(50.dp)
                         }
                     }
                 }
