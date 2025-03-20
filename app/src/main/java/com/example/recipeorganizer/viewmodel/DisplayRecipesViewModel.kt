@@ -32,23 +32,23 @@ class DisplayRecipesViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    private val _total = MutableStateFlow(0)
+    val total: StateFlow<Int> = _total
+
     private val _homerecipes = MutableStateFlow<List<Result>>(emptyList())
     val homerecipes : StateFlow<List<Result>> = _homerecipes
-
-    private val _searchrecipes = MutableStateFlow<List<AutoCompleteModelItem>>(emptyList())
-    val searchrecipes : StateFlow<List<AutoCompleteModelItem>> = _searchrecipes
-
-    private val _ingredientsrecipes = MutableStateFlow<List<Ingredient>>(emptyList())
-    val ingredientsrecipes : StateFlow<List<Ingredient>> = _ingredientsrecipes
-
-    private val _recipefullinfo = MutableStateFlow<RecipeFullInfoModel?>(null)
-    val recipefullinfo : StateFlow<RecipeFullInfoModel?> = _recipefullinfo
 
     private val _nutrientsinfo = MutableStateFlow<NutrientsModel?>(null)
     val nutrientsinfo : StateFlow<NutrientsModel?> = _nutrientsinfo
 
-    private val _total = MutableStateFlow(0)
-    val total: StateFlow<Int> = _total
+    private val _recipefullinfo = MutableStateFlow<RecipeFullInfoModel?>(null)
+    val recipefullinfo : StateFlow<RecipeFullInfoModel?> = _recipefullinfo
+
+    private val _ingredientsrecipes = MutableStateFlow<List<Ingredient>>(emptyList())
+    val ingredientsrecipes : StateFlow<List<Ingredient>> = _ingredientsrecipes
+
+    private val _searchrecipes = MutableStateFlow<List<AutoCompleteModelItem>>(emptyList())
+    val searchrecipes : StateFlow<List<AutoCompleteModelItem>> = _searchrecipes
 
     init {
         getRecipes(offset = 0)
