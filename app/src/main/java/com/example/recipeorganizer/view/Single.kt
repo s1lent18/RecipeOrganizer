@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -255,12 +254,12 @@ fun Single(
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
 ) {
     Surface {
-        val recipe by displayrecipesviewmodel.recipefullinfo.collectAsStateWithLifecycle()
-        val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
-        val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
-        val username by authviewmodel.username.collectAsState(initial = null)
         val context = LocalContext.current
         var saved by remember { mutableStateOf(false) }
+        val username by authviewmodel.username.collectAsState(initial = null)
+        val recipe by displayrecipesviewmodel.recipefullinfo.collectAsStateWithLifecycle()
+        val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
+        val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) {
             val userid = authviewmodel.getuserid()
@@ -269,8 +268,7 @@ fun Single(
             }
         }
 
-        LaunchedEffect(recipe) {
-            // Check if recipe is non-null before accessing its properties
+        LaunchedEffect(recipe?.title) {
             recipe?.let {
                 repository.isSaved(id = it.id.toString()) { ret ->
                     saved = ret
@@ -294,7 +292,7 @@ fun Single(
                         CircularProgressIndicator()
                     }
                 } else {
-                    val (navigationrow, imagebox, time, desc, nuts) = createRefs()
+                    val (navigationrow, imagebox, desc, nuts) = createRefs()
 
                     Box(
                         modifier = Modifier
@@ -372,54 +370,9 @@ fun Single(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier
-                            .height(40.dp)
-                            .offset(y = (-40).dp)
-                            .padding(start = 20.dp)
-                            .constrainAs(time) {
-                                top.linkTo(imagebox.bottom, margin = 20.dp)
-                                start.linkTo(parent.start)
-                                width = Dimension.percent(0.4f)
-                            },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(50.dp))
-                                .background(Color(0xFF212121)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row (
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.Timer,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .padding(top = 5.dp, start = 5.dp, bottom = 5.dp),
-                                    tint = Color.White
-                                )
-
-                                Text(
-                                    "${recipe!!.readyInMinutes} Minutes",
-                                    modifier = Modifier.padding(end = 8.dp, top = 5.dp, bottom = 5.dp),
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                    }
-
                     Column (
                         modifier = Modifier.constrainAs(desc) {
-                            top.linkTo(time.bottom)
+                            top.linkTo(imagebox.bottom, margin = 20.dp)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
                             width = Dimension.percent(0.9f)
@@ -427,11 +380,54 @@ fun Single(
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start
                     ) {
-                        Text(
-                            recipe!!.title,
-                            fontSize = 20.sp,
-                            fontFamily = Bebas
-                        )
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row (
+                                modifier = Modifier.fillMaxWidth(fraction = 0.5f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    recipe!!.title,
+                                    fontSize = 20.sp,
+                                    fontFamily = Bebas
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(fraction = 0.5f)
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(50.dp))
+                                    .background(Color(0xFF212121)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row (
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Timer,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .padding(top = 5.dp, start = 5.dp, bottom = 5.dp),
+                                        tint = Color.White
+                                    )
+
+                                    Text(
+                                        "${recipe!!.readyInMinutes} Mins",
+                                        modifier = Modifier.padding(end = 8.dp, top = 5.dp, bottom = 5.dp),
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     LazyColumn (
