@@ -70,6 +70,7 @@ import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
 import com.example.recipeorganizer.viewmodel.GeminiViewModel
 import com.example.recipeorganizer.viewmodel.navigation.Screens
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun TextRow(
@@ -164,6 +165,31 @@ fun Home(
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
         var savedRecipes by remember { mutableStateOf<List<Data>>(emptyList()) }
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
+
+        val calories by authviewmodel.calorie.collectAsState()
+        val cuisinesList by authviewmodel.selectedCuisine.collectAsState()
+
+        LaunchedEffect(Unit) {
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            userId?.let {
+                authviewmodel.fetchCalories(it)
+                authviewmodel.fetchCuisines(it)
+            }
+        }
+
+        LaunchedEffect(calories) {
+            displayrecipesviewmodel.updateCalories(calories)
+        }
+
+        LaunchedEffect(cuisinesList) {
+            displayrecipesviewmodel.updateCuisines(cuisinesList.filterIsInstance<String>())
+        }
+
+        LaunchedEffect(calories, cuisinesList) {
+            if (!calories.isNullOrBlank() && cuisinesList.isNotEmpty()) {
+                displayrecipesviewmodel.getRecipes(offset = 0)
+            }
+        }
 
         LaunchedEffect(Unit) {
             authviewmodel.getSavedItems { savedList ->

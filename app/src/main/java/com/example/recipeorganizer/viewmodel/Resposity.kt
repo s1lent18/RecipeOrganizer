@@ -34,6 +34,23 @@ class Repository {
         }
     }
 
+    fun addDetails(calories: String, selectedCuisines: List<String>) {
+        val userRef = database.child("FoodAppDB")
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        if (currentUser != null) {
+            val userId = currentUser.uid
+
+            userRef.child(userId).child("Calories").setValue(calories)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+
+            userRef.child(userId).child("Cuisines").setValue(selectedCuisines)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+        }
+    }
+
     fun isSaved(id: String, callback: (Boolean) -> Unit) {
         val usersRef = database.child("FoodAppDB")
         val currentUser = FirebaseAuth.getInstance().currentUser

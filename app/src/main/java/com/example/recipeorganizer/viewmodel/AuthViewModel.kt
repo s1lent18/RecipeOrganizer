@@ -27,6 +27,10 @@ class AuthViewModel @Inject constructor(
     val loggedin: LiveData<Boolean> = _loggedin
     private val _username = MutableStateFlow<String?>(null)
     val username: StateFlow<String?> = _username
+    private val _calorie = MutableStateFlow<String?>(null)
+    val calorie: StateFlow<String?> = _calorie
+    private val _selectedCuisine = MutableStateFlow<List<String?>>(emptyList())
+    val selectedCuisine: StateFlow<List<String?>> = _selectedCuisine
     private val _loading = MutableLiveData<NetworkResponse<Boolean>>()
     val loading: LiveData<NetworkResponse<Boolean>> = _loading
     private val _errorMessage = MutableLiveData<String?>(null)
@@ -60,7 +64,7 @@ class AuthViewModel @Inject constructor(
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            _loggedin.value = true
+                            //_loggedin.value = true
                             _loading.value = NetworkResponse.Success(task.result.user != null)
                             repository.adduser(email, username, age, weight, height)
                             Log.d("Firebase", "Check")
@@ -78,6 +82,10 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun addDetails(calorie: Int, selectedCuisines: List<String>) {
+        repository.addDetails(calories = calorie.toString(), selectedCuisines = selectedCuisines)
+    }
+
     fun signout() {
         firebaseAuth.signOut()
         _loggedin.value = false
@@ -90,6 +98,27 @@ class AuthViewModel @Inject constructor(
                 if (snapshot.exists()) {
                     Log.d("Firebase Response:", "${snapshot.value}")
                     _username.value = snapshot.value.toString()
+                }
+            }
+    }
+
+    fun fetchCuisines(userId: String) {
+        database.child("FoodAppDB").child(userId).child("Cuisines")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    val cuisines = snapshot.value as? List<*>
+                    _selectedCuisine.value = cuisines?.filterIsInstance<String>() ?: emptyList()
+                }
+            }
+    }
+
+    fun fetchCalories(userId: String) {
+        database.child("FoodAppDB").child(userId).child("Calories")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    _calorie.value = snapshot.value.toString()
                 }
             }
     }

@@ -26,6 +26,9 @@ class GeminiViewModel @Inject constructor(
     private val _response = MutableStateFlow<GemModel?>(null)
     val response : StateFlow<GemModel?> = _response
 
+    private val _instructions = MutableStateFlow<GemModel?>(null)
+    val instructions : StateFlow<GemModel?> = _instructions
+
     init {
         getGeminiPrediction()
     }
@@ -55,5 +58,36 @@ class GeminiViewModel @Inject constructor(
                 Log.e("GEMINI_API", "Exception: ${e.message}")
             }
         }
+    }
+
+    fun getInstructions(
+        name: String
+    ) {
+        val aiRequest = AiRequest(
+            contents = listOf(
+                Content(parts = listOf(Part(text = "Generate Instruction Steps for $name The generated content should be in pointers")))
+            )
+        )
+        viewModelScope.launch {
+            try {
+                val response = geminiapi.getResponse(
+                    api = context.getString(R.string.GeminiApiKey),
+                    request = aiRequest
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let { responses ->
+                        _instructions.emit(responses)
+                        Log.d("Check Final", "${_instructions.value}")
+                        Log.d("Check Final 2", "${instructions.value}")
+                    }
+                    Log.d("GEMINI_API", "Response: ${response.body()}")
+                } else {
+                    Log.e("GEMINI_API", "Error: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("GEMINI_API", "Exception: ${e.message}")
+            }
+        }
+
     }
 }

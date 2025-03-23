@@ -12,6 +12,9 @@ interface RecipeDisplayApi {
         @Query("apiKey") apiKey: String,
         @Query("type") type: String,
         @Query("offset") offset: Int,
-        @Query("number") number: Int
+        @Query("number") number: Int,
+        @Query("minCalories") min: Int,
+        @Query("maxCalories") max: Int,
+        @Query("cuisine") cuisine: String
     ) : Response<RecipesModel>
 }
