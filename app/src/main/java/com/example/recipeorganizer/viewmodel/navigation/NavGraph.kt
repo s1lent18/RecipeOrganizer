@@ -10,6 +10,7 @@ import com.example.recipeorganizer.view.Home
 import com.example.recipeorganizer.view.Landing
 import com.example.recipeorganizer.view.Single
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
+import com.example.recipeorganizer.viewmodel.GeminiViewModel
 import com.example.recipeorganizer.viewmodel.Repository
 
 @Composable
@@ -18,6 +19,7 @@ fun NavGraph(
     startDestination: String
 ) {
     val displayrecipesviewmodel = hiltViewModel<DisplayRecipesViewModel>()
+    val geminiviewmodel = hiltViewModel<GeminiViewModel>()
 
     NavHost(
         navController = navController,
@@ -50,7 +52,10 @@ fun NavGraph(
             val repository = Repository()
             Single(
                 displayrecipesviewmodel = displayrecipesviewmodel,
-                repository = repository
+                repository = repository,
+                instructions = {
+                    name -> geminiviewmodel.getInstructions(name = name)
+                }
             )
         }
     }

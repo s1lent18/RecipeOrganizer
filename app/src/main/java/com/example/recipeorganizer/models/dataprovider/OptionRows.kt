@@ -8,5 +8,6 @@ val OptionRows = listOf(
     Pair("Salads", "salad"),
     Pair("Snacks", "snack"),
     Pair("Drinks", "drink"),
-    Pair("Saved-Recipes", "")
+    Pair("Saved-Recipes", ""),
+    Pair("Calorie-Tracking", "")
 )

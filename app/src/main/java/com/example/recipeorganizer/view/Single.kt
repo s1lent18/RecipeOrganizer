@@ -1,6 +1,8 @@
 package com.example.recipeorganizer.view
 
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -61,12 +63,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.example.recipeorganizer.R
+import com.example.recipeorganizer.models.dataprovider.AlarmItem
+import com.example.recipeorganizer.models.dataprovider.AndroidAlarmScheduler
 import com.example.recipeorganizer.ui.theme.Bebas
 import com.example.recipeorganizer.ui.theme.CC
 import com.example.recipeorganizer.ui.theme.main
 import com.example.recipeorganizer.viewmodel.AuthViewModel
 import com.example.recipeorganizer.viewmodel.DisplayRecipesViewModel
+import com.example.recipeorganizer.viewmodel.GeminiViewModel
 import com.example.recipeorganizer.viewmodel.Repository
+import java.time.LocalDateTime
 
 @Composable
 fun PieChart(
@@ -250,19 +256,37 @@ fun IngredientsRow(
     }
 }
 
+fun extractStepsFromText(rawText: String): List<String> {
+    println(rawText)
+    val stepRegex = Regex("""\d+\.\s+.*""") // Matches lines like "1. Do something"
+    return rawText
+        .lines()
+        .map { it.trim() }
+        .filter { stepRegex.matches(it) }
+}
+
 @Composable
 fun Single(
     repository: Repository,
+    instructions: (name: String) -> Unit,
     authviewmodel: AuthViewModel = hiltViewModel(),
     displayrecipesviewmodel: DisplayRecipesViewModel = hiltViewModel(),
+    geminiviewmodel: GeminiViewModel = hiltViewModel()
 ) {
     Surface {
         val context = LocalContext.current
         var saved by remember { mutableStateOf(false) }
+        var insGen by remember { mutableStateOf(false) }
+        val alarmScheduler = remember { AndroidAlarmScheduler(context) }
         val username by authviewmodel.username.collectAsState(initial = null)
         val recipe by displayrecipesviewmodel.recipefullinfo.collectAsStateWithLifecycle()
         val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
         val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
+        val instructionState by geminiviewmodel.instructions.collectAsState()
+
+        LaunchedEffect(recipe?.title) {
+            instructions(recipe?.title.toString())
+        }
 
         LaunchedEffect(Unit) {
             val userid = authviewmodel.getuserid()
@@ -279,6 +303,21 @@ fun Single(
             }
         }
 
+        var steps by remember { mutableStateOf(emptyList<String>()) }
+
+        LaunchedEffect(instructionState) {
+            val text = instructionState
+
+            Log.d("StepsDebug", "Raw instructions text: $text")
+
+            if (text.isNotBlank()) {
+                steps = extractStepsFromText(text)
+                Log.d("StepsDebug", "Parsed steps: $steps")
+
+                insGen = true
+            }
+        }
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.Start
@@ -287,6 +326,7 @@ fun Single(
                 modifier = Modifier
                     .fillMaxSize(),
             ) {
+                val (navigationrow, imagebox, desc, nuts) = createRefs()
                 if (recipe == null || nutrients == null || ingredients.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -295,7 +335,6 @@ fun Single(
                         CircularProgressIndicator()
                     }
                 } else {
-                    val (navigationrow, imagebox, desc, nuts) = createRefs()
 
                     Box(
                         modifier = Modifier
@@ -433,81 +472,144 @@ fun Single(
                         }
                     }
 
-                    LazyColumn (
-                        modifier = Modifier
-                            .constrainAs(nuts) {
-                                top.linkTo(desc.bottom, margin = 20.dp)
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                                width = Dimension.percent(0.9f)
-                                height = Dimension.fillToConstraints
-                                bottom.linkTo(parent.bottom, margin = 20.dp)
-                            }
-                            .fillMaxHeight(),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        item {
-                            PieChart(
-                                data = mapOf(
-                                    Pair("Proteins", (nutrients!!.protein.replace("g", "")).toInt()),
-                                    Pair("Fats", (nutrients!!.fat.replace("g", "")).toInt()),
-                                    Pair("Carbs", (nutrients!!.carbs.replace("g", "")).toInt()),
-                                    Pair("Calories", (nutrients!!.calories).toInt())
+                    if (!insGen) {
+                        LazyColumn (
+                            modifier = Modifier
+                                .constrainAs(nuts) {
+                                    top.linkTo(desc.bottom, margin = 20.dp)
+                                    start.linkTo(parent.start)
+                                    end.linkTo(parent.end)
+                                    width = Dimension.percent(0.9f)
+                                    height = Dimension.fillToConstraints
+                                    bottom.linkTo(parent.bottom, margin = 20.dp)
+                                }
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            item {
+                                PieChart(
+                                    data = mapOf(
+                                        Pair("Proteins", (nutrients!!.protein.replace("g", "")).toInt()),
+                                        Pair("Fats", (nutrients!!.fat.replace("g", "")).toInt()),
+                                        Pair("Carbs", (nutrients!!.carbs.replace("g", "")).toInt()),
+                                        Pair("Calories", (nutrients!!.calories).toInt())
+                                    )
                                 )
-                            )
-                        }
-
-                        item {
-                            Text(
-                                text = "Ingredients",
-                                fontSize = 20.sp,
-                                fontFamily = CC
-                            )
-                            AddHeight(5.dp)
-                            LazyRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                            ) {
-                                items(ingredients.size) { ing ->
-                                    IngredientsRow(
-                                        context = context,
-                                        image = ingredients[ing].image,
-                                        name = ingredients[ing].name
-                                    )
-                                    AddWidth(20.dp)
-                                }
                             }
-                            AddHeight(20.dp)
-                        }
 
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(5.dp))
-                                    .background(Color.Transparent)
-                                    .height(50.dp)
-                                    .fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Button(
-                                    onClick = {},
+                            item {
+                                Text(
+                                    text = "Ingredients",
+                                    fontSize = 20.sp,
+                                    fontFamily = CC
+                                )
+                                AddHeight(5.dp)
+                                LazyRow(
                                     modifier = Modifier
-                                        .height(50.dp)
-                                        .fillMaxWidth(fraction = 0.9f),
-                                    elevation = ButtonDefaults.elevatedButtonElevation(
-                                        defaultElevation = 20.dp
-                                    ),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = main,
-                                        contentColor = Color.White
-                                    )
+                                        .fillMaxWidth()
+                                        .height(100.dp)
                                 ) {
-                                    Text("Start Cooking")
+                                    items(ingredients.size) { ing ->
+                                        IngredientsRow(
+                                            context = context,
+                                            image = ingredients[ing].image,
+                                            name = ingredients[ing].name
+                                        )
+                                        AddWidth(20.dp)
+                                    }
+                                }
+                                AddHeight(20.dp)
+                            }
+
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(Color.Transparent)
+                                        .height(50.dp)
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Button(
+                                        onClick = {
+                                            val currentTime = LocalDateTime.now()
+                                            val alarmTime = currentTime.plusMinutes(recipe!!.readyInMinutes.toLong())
+
+                                            val alarmItem = AlarmItem(
+                                                time = alarmTime,
+                                                message = "Food is Ready"
+                                            )
+                                            insGen = true
+                                            alarmScheduler.schedule(alarmItem)
+                                            Toast.makeText(context, "Alarm set for ${recipe!!.readyInMinutes} minutes", Toast.LENGTH_SHORT).show()
+                                        },
+                                        modifier = Modifier
+                                            .height(50.dp)
+                                            .fillMaxWidth(fraction = 0.9f),
+                                        elevation = ButtonDefaults.elevatedButtonElevation(
+                                            defaultElevation = 20.dp
+                                        ),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = main,
+                                            contentColor = Color.White
+                                        )
+                                    ) {
+                                        Text("Start Cooking")
+                                    }
+                                }
+                                AddHeight(50.dp)
+                            }
+                        }
+                    } else {
+                        LazyColumn (
+                            modifier = Modifier
+                                .constrainAs(nuts) {
+                                    top.linkTo(desc.bottom, margin = 20.dp)
+                                    start.linkTo(parent.start)
+                                    end.linkTo(parent.end)
+                                    width = Dimension.percent(0.9f)
+                                    height = Dimension.fillToConstraints
+                                    bottom.linkTo(parent.bottom, margin = 20.dp)
+                                }
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            if (steps.isEmpty()) {
+                                item {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Top,
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Text(
+                                            "Steps:",
+                                            fontSize = 20.sp,
+                                            fontFamily = Bebas
+                                        )
+                                        AddHeight(30.dp)
+
+                                        Box (
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator()
+                                        }
+                                    }
+                                }
+                            } else {
+                                items(steps) { step ->
+                                    Text(
+                                        text = step,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        fontSize = 16.sp
+                                    )
+                                    AddHeight(10.dp)
                                 }
                             }
-                            AddHeight(50.dp)
                         }
                     }
                 }

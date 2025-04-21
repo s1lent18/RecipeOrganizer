@@ -15,14 +15,10 @@ import com.example.recipeorganizer.models.model.Ingredient
 import com.example.recipeorganizer.models.model.NutrientsModel
 import com.example.recipeorganizer.models.model.RecipeFullInfoModel
 import com.example.recipeorganizer.models.model.Result
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -76,10 +72,6 @@ class DisplayRecipesViewModel @Inject constructor(
     private val _cuisines = MutableStateFlow<List<String>>(emptyList())
     val cuisines : StateFlow<List<String>> = _cuisines
 
-    init {
-        //getRecipes(offset = 0)
-    }
-
     fun updateCalories(newCalories: String?) {
         _calories.value = newCalories
     }
@@ -115,8 +107,8 @@ class DisplayRecipesViewModel @Inject constructor(
                     type = type,
                     offset = offset,
                     number = number,
-                    min = if (timeCategory.value == "Breakfast") (calories.value?.toInt()?.times(0.20))?.toInt() ?: 0 else if (timeCategory.value == "Lunch") (calories.value?.toInt()?.times(0.35))?.toInt() ?: 0 else if (timeCategory.value == "Dinner") (calories.value?.toInt()?.times(0.25))?.toInt() ?: 0 else (calories.value?.toInt()?.times(0.05))?.toInt() ?: 0,
-                    max = if (timeCategory.value == "Breakfast") (calories.value?.toInt()?.times(0.25))?.toInt() ?: 0 else if (timeCategory.value == "Lunch") (calories.value?.toInt()?.times(0.40))?.toInt() ?: 0 else if (timeCategory.value == "Dinner") (calories.value?.toInt()?.times(0.30))?.toInt() ?: 0 else (calories.value?.toInt()?.times(0.15))?.toInt() ?: 0,
+                    min = 0,
+                    max = if (timeCategory.value == "Breakfast") (calories.value?.toInt()?.times(0.45))?.toInt() ?: 0 else if (timeCategory.value == "Lunch") (calories.value?.toInt()?.times(0.7))?.toInt() ?: 0 else if (timeCategory.value == "Dinner") (calories.value?.toInt()?.times(0.5))?.toInt() ?: 0 else (calories.value?.toInt()?.times(0.8))?.toInt() ?: 0,
                     cuisine = cuisines.value.joinToString(", ")
                 )
 
