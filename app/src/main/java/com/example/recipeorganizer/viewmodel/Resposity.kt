@@ -8,6 +8,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ServerValue
 
 class Repository {
 
@@ -34,7 +35,7 @@ class Repository {
         }
     }
 
-    fun addDetails(calories: String, selectedCuisines: List<String>) {
+    fun addDetails(calories: String, selectedCuisines: List<String>, currentVal: Int = 0) {
         val userRef = database.child("FoodAppDB")
         val currentUser = FirebaseAuth.getInstance().currentUser
 
@@ -46,6 +47,14 @@ class Repository {
                 .addOnFailureListener {}
 
             userRef.child(userId).child("Cuisines").setValue(selectedCuisines)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+
+            userRef.child(userId).child("CurrentConsumed").setValue(currentVal)
+                .addOnSuccessListener {}
+                .addOnFailureListener {}
+
+            userRef.child(userId).child("TimeStamp").setValue(ServerValue.TIMESTAMP)
                 .addOnSuccessListener {}
                 .addOnFailureListener {}
         }
@@ -127,5 +136,7 @@ class Repository {
                 }
             })
     }
+
+
 
 }

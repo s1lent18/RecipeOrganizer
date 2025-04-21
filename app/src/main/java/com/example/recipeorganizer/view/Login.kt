@@ -119,7 +119,7 @@ fun Login(
         AddHeight(20.dp)
 
         Input(
-            label = "Username",
+            label = "Email",
             value = username,
             onValueChange = setusername,
             color = Color.White
@@ -159,7 +159,7 @@ fun Login(
                         keyboardController?.hide()
                     }
                     else if (username.isEmpty()) {
-                        Toast.makeText(context, "Enter username", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Enter Email", Toast.LENGTH_SHORT).show()
                     }
                     else if (password.isEmpty()) {
                         Toast.makeText(context, "Enter password", Toast.LENGTH_SHORT).show()

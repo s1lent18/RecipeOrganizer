@@ -10,10 +10,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,9 +38,14 @@ class AuthViewModel @Inject constructor(
     private val _loading = MutableLiveData<NetworkResponse<Boolean>>()
     val loading: LiveData<NetworkResponse<Boolean>> = _loading
     private val _errorMessage = MutableLiveData<String?>(null)
+    private val _currentCal = MutableStateFlow<String?>(null)
+    val currentCal: StateFlow<String?> = _currentCal
+    private val _timeStamp = MutableStateFlow<String?>(null)
+    val timeStamp: StateFlow<String?> = _timeStamp
 
     init {
         _loggedin.value = firebaseAuth.currentUser != null
+        checkAndResetDailyCalories()
     }
 
     fun signin(email: String, password: String) {
@@ -157,5 +166,95 @@ class AuthViewModel @Inject constructor(
                 }
             })
         }
+    }
+
+    fun checkAndResetDailyCalories() {
+        val userId = getuserid() ?: return
+
+        database.child("FoodAppDB").child(userId).get()
+            .addOnSuccessListener { snapshot ->
+                val currentConsumed = snapshot.child("CurrentConsumed").getValue(Int::class.java) ?: 0
+                val timestampLong = snapshot.child("TimeStamp").getValue(Long::class.java)
+
+                if (timestampLong != null) {
+                    val lastSavedDate = Instant.ofEpochMilli(timestampLong)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+
+                    val today = LocalDate.now()
+
+                    if (lastSavedDate != today) {
+                        // New day → Reset current calories
+                        database.child("FoodAppDB").child(userId).child("CurrentConsumed").setValue(0)
+                        database.child("FoodAppDB").child(userId).child("TimeStamp").setValue(ServerValue.TIMESTAMP)
+                        _currentCal.value = "0"
+                    } else {
+                        // Same day → just keep the existing value
+                        _currentCal.value = currentConsumed.toString()
+                    }
+                } else {
+                    // If timestamp doesn't exist, initialize it
+                    database.child("FoodAppDB").child(userId).child("TimeStamp").setValue(ServerValue.TIMESTAMP)
+                    _currentCal.value = currentConsumed.toString()
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Firebase", "Failed to fetch daily calories data", it)
+            }
+    }
+
+    fun updateConsumedCalories(caloriesToAdd: Int) {
+        val userId = getuserid() ?: return
+
+        val userRef = database.child("FoodAppDB").child(userId)
+
+        userRef.get().addOnSuccessListener { snapshot ->
+            val currentConsumed = snapshot.child("CurrentConsumed").getValue(Int::class.java) ?: 0
+            val timestampLong = snapshot.child("TimeStamp").getValue(Long::class.java)
+
+            val today = LocalDate.now()
+
+            if (timestampLong != null) {
+                val lastSavedDate = Instant.ofEpochMilli(timestampLong)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+
+                if (lastSavedDate != today) {
+                    // Not the same day → reset to new value
+                    userRef.child("CurrentConsumed").setValue(caloriesToAdd)
+                    userRef.child("TimeStamp").setValue(ServerValue.TIMESTAMP)
+                    _currentCal.value = caloriesToAdd.toString()
+                } else {
+                    // Same day → add to current value
+                    val newTotal = currentConsumed + caloriesToAdd
+                    userRef.child("CurrentConsumed").setValue(newTotal)
+                    userRef.child("TimeStamp").setValue(ServerValue.TIMESTAMP)
+                    _currentCal.value = newTotal.toString()
+                }
+            } else {
+                // No timestamp → assume fresh start
+                userRef.child("CurrentConsumed").setValue(caloriesToAdd)
+                userRef.child("TimeStamp").setValue(ServerValue.TIMESTAMP)
+                _currentCal.value = caloriesToAdd.toString()
+            }
+        }.addOnFailureListener {
+            Log.e("Firebase", "Failed to update consumed calories", it)
+        }
+    }
+
+    fun listenForCurrentCalories() {
+        val userId = getuserid() ?: return
+
+        val userRef = database.child("FoodAppDB").child(userId).child("CurrentConsumed")
+        userRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val current = snapshot.getValue(Int::class.java) ?: 0
+                _currentCal.value = current.toString()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Failed to listen to calories", error.toException())
+            }
+        })
     }
 }

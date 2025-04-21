@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -283,6 +284,19 @@ fun Single(
         val nutrients by displayrecipesviewmodel.nutrientsinfo.collectAsStateWithLifecycle()
         val ingredients by displayrecipesviewmodel.ingredientsrecipes.collectAsStateWithLifecycle()
         val instructionState by geminiviewmodel.instructions.collectAsState()
+
+        var calories by remember { mutableIntStateOf(0) }
+
+        LaunchedEffect(recipe) {
+            recipe?.let {
+                val smartPoints = it.weightWatcherSmartPoints
+                val servings = it.servings
+
+                if (servings > 0) {
+                    calories = (smartPoints * 40) / servings
+                }
+            }
+        }
 
         LaunchedEffect(recipe?.title) {
             instructions(recipe?.title.toString())
@@ -541,6 +555,7 @@ fun Single(
                                                 message = "Food is Ready"
                                             )
                                             insGen = true
+                                            authviewmodel.updateConsumedCalories(calories)
                                             alarmScheduler.schedule(alarmItem)
                                             Toast.makeText(context, "Alarm set for ${recipe!!.readyInMinutes} minutes", Toast.LENGTH_SHORT).show()
                                         },

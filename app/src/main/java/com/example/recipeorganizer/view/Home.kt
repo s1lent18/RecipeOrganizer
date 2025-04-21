@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -158,7 +157,7 @@ fun CustomComponent(
     foregroundIndicatorColor: Color = Color.Blue,
     foregroundIndicatorStrokeWidth: Float = 100f,
 //    indicatorStrokeCap: StrokeCap = StrokeCap.Round,
-    bigTextFontSize: TextUnit = 25.sp,
+    bigTextFontSize: TextUnit = 20.sp,
     bigTextColor: Color = Color.Black,
     bigTextSuffix: String = "Calories",
     smallText: String = "Remaining",
@@ -299,7 +298,7 @@ fun EmbeddedElements(
         textAlign = TextAlign.Center
     )
     Text(
-        text = "$bigText ${bigTextSuffix.take(2)}",
+        text = "$bigText $bigTextSuffix",
         color = bigTextColor,
         fontSize = bigTextFontSize,
         textAlign = TextAlign.Center,
@@ -331,6 +330,7 @@ fun Home(
         val selectedOption = rememberSaveable { mutableStateOf("BreakFast") }
         val username by authviewmodel.username.collectAsState(initial = null)
         val total by displayrecipesviewmodel.total.collectAsStateWithLifecycle()
+        val currentCalories by authviewmodel.currentCal.collectAsStateWithLifecycle()
         var savedRecipes by remember { mutableStateOf<List<Data>>(emptyList()) }
         val recipes by displayrecipesviewmodel.homerecipes.collectAsStateWithLifecycle()
         val searchrecipes by displayrecipesviewmodel.searchrecipes.collectAsStateWithLifecycle()
@@ -345,6 +345,7 @@ fun Home(
             userId?.let {
                 authviewmodel.fetchCalories(it)
                 authviewmodel.fetchCuisines(it)
+                authviewmodel.listenForCurrentCalories()
             }
         }
 
@@ -600,8 +601,10 @@ fun Home(
                             contentAlignment = Alignment.Center
                         ) {
                             CustomComponent(
-                                indicatorValue = 1200,
-                                maxIndicatorValue = 2000,
+                                indicatorValue = currentCalories!!.toInt(),
+                                maxIndicatorValue = calories!!.toInt() ,
+                                foregroundIndicatorColor = main,
+                                backgroundIndicatorColor = Color.LightGray,
                                 bigTextSuffix = "Calories"
                             )
                         }
