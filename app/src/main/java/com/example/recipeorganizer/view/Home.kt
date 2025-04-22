@@ -605,7 +605,9 @@ fun Home(
                                 maxIndicatorValue = calories!!.toInt() ,
                                 foregroundIndicatorColor = main,
                                 backgroundIndicatorColor = Color.LightGray,
-                                bigTextSuffix = "Calories"
+                                bigTextSuffix = "Calories",
+                                bigTextColor = sec,
+                                smallTextColor = sec
                             )
                         }
                     }
