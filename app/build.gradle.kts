@@ -42,6 +42,11 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -93,5 +98,17 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation (libs.androidx.runtime.livedata)
+
+
+    testImplementation ("junit:junit:4.13.2")
+    testImplementation ("org.mockito:mockito-core:4.0.0")
+    testImplementation ("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation ("org.mockito:mockito-inline:4.0.0")
+    testImplementation ("androidx.arch.core:core-testing:2.1.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.8")
+    testImplementation ("org.robolectric:robolectric:4.10.3") // For Android environment simulation
+
+
+
 
 }
